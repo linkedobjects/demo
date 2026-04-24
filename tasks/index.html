@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>tasks — Demo Pod</title>
+</head>
+<body>
+  <div id="mashlib"></div>
+  <script type="application/ld+json">
+  {
+    "@context": {
+      "ical": "http://www.w3.org/2002/12/cal/ical#",
+      "wf": "http://www.w3.org/2005/01/wf/flow#",
+      "dct": "http://purl.org/dc/terms/",
+      "summary": "ical:summary",
+      "status": "ical:status",
+      "created": "dct:created",
+      "modified": "ical:lastModified",
+      "title": "dct:title",
+      "initialState": "wf:initialState",
+      "issue": "wf:issue",
+      "Tracker": "wf:Tracker",
+      "Vtodo": "ical:Vtodo"
+    },
+    "@id": "#this",
+    "@type": "Tracker",
+    "title": "demo",
+    "created": "2026-04-25T00:00:00.000Z",
+    "initialState": "NEEDS-ACTION",
+    "issue": [
+      {
+        "@id": "#i1",
+        "@type": "Vtodo",
+        "summary": "Open the Linked Object Browser",
+        "status": "COMPLETED",
+        "created": "2026-04-25T00:00:00.000Z"
+      },
+      {
+        "@id": "#i2",
+        "@type": "Vtodo",
+        "summary": "Click around the demo pod",
+        "status": "IN-PROCESS",
+        "created": "2026-04-25T00:01:00.000Z"
+      },
+      {
+        "@id": "#i3",
+        "@type": "Vtodo",
+        "summary": "Build your own pane",
+        "status": "NEEDS-ACTION",
+        "created": "2026-04-25T00:02:00.000Z"
+      }
+    ]
+  }
+  </script>
+  <script type="module" src="https://linkedobjects.org/browser/mashlib.js"></script>
+</body>
+</html>

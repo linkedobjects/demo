@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>notes — Demo Pod</title>
+</head>
+<body>
+  <div id="mashlib"></div>
+  <script type="application/ld+json">
+  {
+    "@id": "#this",
+    "@type": "TextDocument",
+    "contentType": "text/markdown",
+    "content": "# Welcome\n\nThis is a markdown note rendered by the **markdown pane**. The `@type` is `TextDocument` and the content type is `text/markdown` — that's all the browser needs to know.\n\n## What's happening here\n\n- The page you're looking at is a static HTML wrapper served from GitHub Pages.\n- Inside the page is an inline `<script type=\"application/ld+json\">` island carrying the markdown.\n- The browser's shell finds the island, dispatches to the markdown pane, and renders this text.\n\n## Try editing\n\nClone `linkedobjects/demo`, change this file, push to `gh-pages`. Your edits go live in seconds — no build, no bundler.\n"
+  }
+  </script>
+  <script type="module" src="https://linkedobjects.org/browser/mashlib.js"></script>
+</body>
+</html>

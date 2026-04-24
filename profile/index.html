@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>profile — Demo Pod</title>
+</head>
+<body>
+  <div id="mashlib"></div>
+  <script type="application/ld+json">
+  {
+    "@context": {
+      "foaf": "http://xmlns.com/foaf/0.1/",
+      "schema": "http://schema.org/",
+      "name": "foaf:name",
+      "nick": "foaf:nick",
+      "homepage": "foaf:homepage",
+      "img": "foaf:img",
+      "knows": "foaf:knows",
+      "Person": "foaf:Person"
+    },
+    "@id": "#this",
+    "@type": "Person",
+    "name": "Alice Example",
+    "nick": "alice",
+    "homepage": "https://alice.example",
+    "img": "https://www.gravatar.com/avatar/?d=mp&s=200",
+    "knows": [
+      { "@id": "https://bob.example/#this", "name": "Bob" },
+      { "@id": "https://carol.example/#this", "name": "Carol" }
+    ]
+  }
+  </script>
+  <script type="module" src="https://linkedobjects.org/browser/mashlib.js"></script>
+</body>
+</html>

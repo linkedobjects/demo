@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>folder — Demo Pod</title>
+</head>
+<body>
+  <div id="mashlib"></div>
+  <script type="application/ld+json">
+  {
+    "@context": {
+      "ldp": "http://www.w3.org/ns/ldp#",
+      "dct": "http://purl.org/dc/terms/",
+      "Container": "ldp:BasicContainer",
+      "Resource": "ldp:Resource",
+      "contains": "ldp:contains",
+      "modified": "dct:modified"
+    },
+    "@id": "#this",
+    "@type": "Container",
+    "modified": "2026-04-25T00:00:00.000Z",
+    "contains": [
+      { "@id": "../profile/", "@type": "Resource", "modified": "2026-04-25T00:00:00.000Z" },
+      { "@id": "../tasks/",   "@type": "Resource", "modified": "2026-04-25T00:00:00.000Z" },
+      { "@id": "../notes/",   "@type": "Resource", "modified": "2026-04-25T00:00:00.000Z" },
+      { "@id": "../playlist/","@type": "Resource", "modified": "2026-04-25T00:00:00.000Z" }
+    ]
+  }
+  </script>
+  <script type="module" src="https://linkedobjects.org/browser/mashlib.js"></script>
+</body>
+</html>

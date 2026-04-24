@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>playlist — Demo Pod</title>
+</head>
+<body>
+  <div id="mashlib"></div>
+  <script type="application/ld+json">
+  {
+    "@id": "#this",
+    "@type": "Playlist",
+    "contentType": "audio/mpegurl",
+    "content": "#EXTM3U\n#EXTINF:-1,SomaFM Groove Salad\nhttps://ice1.somafm.com/groovesalad-128-mp3\n#EXTINF:-1,SomaFM Drone Zone\nhttps://ice1.somafm.com/dronezone-128-mp3\n#EXTINF:-1,SomaFM Indie Pop Rocks\nhttps://ice1.somafm.com/indiepop-128-mp3\n"
+  }
+  </script>
+  <script type="module" src="https://linkedobjects.org/browser/mashlib.js"></script>
+</body>
+</html>

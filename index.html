@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Linked Objects — Demo Pod</title>
+  <style>
+    body { font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 640px; margin: 60px auto; padding: 0 24px; color: #1a1a1a; }
+    h1 { font: italic 400 36px/1.2 Georgia, serif; margin: 0 0 8px; }
+    p.lede { color: #666; margin: 0 0 32px; }
+    ul { list-style: none; padding: 0; }
+    li { margin: 0 0 4px; }
+    a.res { display: flex; align-items: baseline; gap: 12px; padding: 14px 16px; border-radius: 10px; text-decoration: none; color: inherit; transition: background 0.1s; }
+    a.res:hover { background: #f4f4f5; }
+    a.res .name { font-weight: 600; }
+    a.res .type { color: #999; font-family: monospace; font-size: 13px; }
+    a.res .desc { color: #666; margin-left: auto; font-size: 14px; }
+    footer { margin-top: 48px; color: #999; font-size: 13px; }
+    footer a { color: #666; }
+  </style>
+</head>
+<body>
+  <h1>Demo pod</h1>
+  <p class="lede">A handful of linked-object resources rendered by the <a href="https://linkedobjects.org/browser/">Linked Object Browser</a>. Each link below is a real URL with real JSON-LD; click one to see the matching pane.</p>
+  <ul>
+    <li><a class="res" href="profile/"><span class="name">profile</span> <span class="type">foaf:Person</span> <span class="desc">a person</span></a></li>
+    <li><a class="res" href="tasks/"><span class="name">tasks</span> <span class="type">wf:Tracker</span> <span class="desc">a to-do list</span></a></li>
+    <li><a class="res" href="notes/"><span class="name">notes</span> <span class="type">TextDocument</span> <span class="desc">markdown content</span></a></li>
+    <li><a class="res" href="playlist/"><span class="name">playlist</span> <span class="type">Playlist</span> <span class="desc">audio queue</span></a></li>
+    <li><a class="res" href="folder/"><span class="name">folder</span> <span class="type">ldp:Container</span> <span class="desc">a directory listing</span></a></li>
+  </ul>
+  <footer>
+    Source: <a href="https://github.com/linkedobjects/demo">github.com/linkedobjects/demo</a>
+  </footer>
+</body>
+</html>
