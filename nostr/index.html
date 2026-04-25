@@ -1,0 +1,1684 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Nostr · Linked Objects</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%237c5cff' d='M12 2 4 12l8 10 8-10z M12 6 7 12l5 6 5-6z'/%3E%3C/svg%3E" />
+<style>
+:root {
+  --accent: #7c5cff;
+  --accent-2: #a78bff;
+  --accent-soft: rgba(124,92,255,.13);
+  --good: #22c55e;
+  --warn: #fbbf24;
+  --danger: #ef4444;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Inter", "Segoe UI", Roboto, sans-serif;
+  --easing: cubic-bezier(.2,.8,.2,1);
+}
+[data-theme="dark"] {
+  --bg: #0a0b10;
+  --bg-elev: #12141b;
+  --bg-elev-2: #1a1d27;
+  --bg-elev-3: #232734;
+  --line: #232734;
+  --line-2: #2c3142;
+  --text: #e7ecf4;
+  --text-dim: #9aa4b8;
+  --text-faint: #5d6680;
+  --shadow: 0 12px 40px -12px rgba(0,0,0,.6);
+}
+[data-theme="light"] {
+  --bg: #f5f6fa;
+  --bg-elev: #ffffff;
+  --bg-elev-2: #f0f2f8;
+  --bg-elev-3: #e3e7ef;
+  --line: #e3e7ef;
+  --line-2: #d0d6e0;
+  --text: #1a1f2e;
+  --text-dim: #5a6275;
+  --text-faint: #98a0b3;
+  --shadow: 0 8px 24px -10px rgba(20,30,60,.18);
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: ""; position: fixed; inset: 0;
+  background:
+    radial-gradient(900px 500px at 0% 0%, rgba(124,92,255,.10), transparent 60%),
+    radial-gradient(700px 400px at 100% 100%, rgba(167,139,255,.06), transparent 60%);
+  pointer-events: none; z-index: 0;
+}
+[data-theme="light"] body::before {
+  background: radial-gradient(900px 500px at 0% 0%, rgba(124,92,255,.05), transparent 60%);
+}
+
+/* SHELL */
+.shell {
+  position: relative; z-index: 1;
+  display: grid;
+  grid-template-columns: 240px 1fr 320px;
+  height: 100vh;
+}
+
+/* LEFT NAV */
+.nav {
+  background: var(--bg-elev);
+  border-right: 1px solid var(--line);
+  padding: 14px 12px;
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 10px;
+  margin-bottom: 14px;
+  text-decoration: none;
+  color: var(--text);
+}
+.brand-mark {
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border-radius: 11px;
+  box-shadow: 0 6px 16px rgba(124,92,255,.4);
+}
+.brand-mark svg { width: 20px; height: 20px; color: white; }
+.brand .name { font-weight: 700; font-size: 16px; letter-spacing: -.01em; }
+.brand .sub { color: var(--text-faint); font-size: 11px; font-family: var(--mono); }
+
+.nav-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 14px;
+  background: transparent; border: none;
+  border-radius: 10px;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: inherit; font-size: 14px;
+  text-align: left;
+  transition: all .15s var(--easing);
+  position: relative;
+  text-decoration: none;
+}
+.nav-item:hover { background: var(--bg-elev-2); color: var(--text); }
+.nav-item.active {
+  background: var(--accent-soft);
+  color: var(--text);
+  font-weight: 500;
+}
+.nav-item.active::before {
+  content: ""; position: absolute; left: 0; top: 8px; bottom: 8px;
+  width: 3px; background: var(--accent); border-radius: 0 3px 3px 0;
+}
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.nav-item .badge {
+  margin-left: auto;
+  background: var(--accent);
+  color: white;
+  font-size: 11px; font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 100px;
+}
+
+.compose-cta {
+  margin: 10px 4px 0;
+  padding: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white; border: none;
+  border-radius: 100px;
+  font-family: inherit; font-weight: 600; font-size: 14px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 6px 14px rgba(124,92,255,.4);
+  transition: transform .12s var(--easing);
+}
+.compose-cta:hover { transform: translateY(-1px); }
+
+.nav-foot {
+  margin-top: auto;
+  padding: 10px 4px;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.nav-foot .relays {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-elev-2);
+  border-radius: 9px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background .12s var(--easing);
+}
+.nav-foot .relays:hover { background: var(--bg-elev-3); }
+.relay-light {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--good);
+  box-shadow: 0 0 8px var(--good);
+  flex-shrink: 0;
+}
+.relay-light.connecting { background: var(--warn); box-shadow: 0 0 8px var(--warn); animation: blink 1s infinite; }
+.relay-light.error { background: var(--danger); box-shadow: 0 0 8px var(--danger); animation: none; }
+@keyframes blink { 50% { opacity: .3; } }
+
+/* CENTER FEED */
+.feed-pane {
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--line);
+}
+.feed-head {
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg);
+  position: sticky; top: 0; z-index: 5;
+}
+.feed-head h1 { margin: 0; font-size: 22px; letter-spacing: -.01em; }
+.feed-head .count {
+  font-size: 12px; color: var(--text-faint);
+  font-family: var(--mono);
+}
+.feed-tabs {
+  display: flex; gap: 2px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  position: sticky; top: 60px; z-index: 4;
+}
+.feed-tab {
+  padding: 12px 18px;
+  background: transparent; border: none;
+  font-family: inherit; font-size: 14px; font-weight: 500;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all .15s var(--easing);
+}
+.feed-tab:hover { color: var(--text); }
+.feed-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.feed-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* COMPOSER */
+.composer {
+  border-bottom: 1px solid var(--line);
+  padding: 14px 22px;
+  display: flex; gap: 12px;
+}
+.composer .ava {
+  flex-shrink: 0;
+}
+.composer .body { flex: 1; min-width: 0; }
+.composer textarea {
+  width: 100%;
+  background: transparent;
+  border: none; outline: none; resize: none;
+  font-family: inherit; font-size: 16px;
+  color: var(--text);
+  line-height: 1.45;
+  padding: 8px 0;
+  min-height: 60px;
+  max-height: 200px;
+}
+.composer textarea::placeholder { color: var(--text-faint); }
+.composer .actions {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+.composer .icon-row { display: flex; gap: 4px; }
+.composer .charcount {
+  font-family: var(--mono); font-size: 12px; color: var(--text-faint);
+}
+.composer .charcount.over { color: var(--danger); }
+.composer .right { display: flex; align-items: center; gap: 12px; }
+.icon-btn-sm {
+  width: 30px; height: 30px;
+  background: transparent; border: none;
+  border-radius: 50%;
+  color: var(--text-dim);
+  cursor: pointer;
+  display: grid; place-items: center;
+  transition: all .15s var(--easing);
+}
+.icon-btn-sm:hover { background: var(--accent-soft); color: var(--accent); }
+.icon-btn-sm svg { width: 16px; height: 16px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 18px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  color: var(--text);
+  font-family: inherit; font-weight: 600; font-size: 13px;
+  cursor: pointer;
+  transition: all .15s var(--easing);
+  text-decoration: none;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white; border-color: transparent;
+  box-shadow: 0 4px 14px rgba(124,92,255,.4);
+}
+.btn.primary:hover { transform: translateY(-1px); }
+.btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+.btn svg { width: 14px; height: 14px; }
+
+/* NOTE */
+.note {
+  display: flex; gap: 12px;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: background .12s var(--easing);
+  animation: noteIn .25s var(--easing);
+}
+@keyframes noteIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.note:hover { background: var(--bg-elev); }
+.note.active { background: var(--bg-elev); }
+.note .ava { flex-shrink: 0; cursor: pointer; }
+.note .body { flex: 1; min-width: 0; }
+.note .head {
+  display: flex; align-items: baseline; gap: 6px;
+  margin-bottom: 2px;
+}
+.note .name {
+  font-weight: 600; font-size: 14px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  cursor: pointer;
+}
+.note .name:hover { text-decoration: underline; }
+.note .nip05 {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex; align-items: center; gap: 3px;
+  flex-shrink: 0;
+}
+.note .nip05 svg { width: 12px; height: 12px; }
+.note .npub {
+  font-size: 12px; color: var(--text-faint);
+  font-family: var(--mono);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  flex-shrink: 1;
+  min-width: 0;
+}
+.note .when {
+  font-size: 12px; color: var(--text-faint);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.note .reply-info {
+  font-size: 12px; color: var(--text-faint);
+  margin-bottom: 4px;
+  display: flex; align-items: center; gap: 4px;
+}
+.note .reply-info svg { width: 11px; height: 11px; }
+.note .reply-info .who { color: var(--accent); cursor: pointer; }
+.note .reply-info .who:hover { text-decoration: underline; }
+.note .content {
+  font-size: 15px;
+  line-height: 1.5;
+  word-break: break-word;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+.note .content a { color: var(--accent); text-decoration: none; }
+.note .content a:hover { text-decoration: underline; }
+.note .content .hashtag { color: var(--accent); }
+.note .content .mention { color: var(--accent); }
+.note .content img {
+  max-width: 100%;
+  max-height: 360px;
+  border-radius: 12px;
+  margin-top: 8px;
+  display: block;
+  border: 1px solid var(--line);
+}
+.note .content video {
+  max-width: 100%;
+  max-height: 360px;
+  border-radius: 12px;
+  margin-top: 8px;
+  display: block;
+  border: 1px solid var(--line);
+}
+.note .content .embed-link {
+  display: block;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--text-dim);
+  background: var(--bg-elev-2);
+  word-break: break-all;
+}
+.note .actions-row {
+  display: flex; gap: 22px;
+  margin-top: 10px;
+  color: var(--text-faint);
+  font-size: 13px;
+}
+.note .act {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent; border: none;
+  cursor: pointer;
+  color: inherit;
+  font-family: inherit; font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 100px;
+  transition: all .12s var(--easing);
+}
+.note .act:hover { background: var(--accent-soft); color: var(--accent); }
+.note .act.mine { color: var(--accent); }
+.note .act svg { width: 14px; height: 14px; }
+.note .act .ct { font-family: var(--mono); font-size: 12px; }
+
+.note.thread-root { background: var(--bg-elev); }
+.note.parent {
+  border-left: 2px solid var(--line);
+  margin-left: 22px;
+}
+
+/* AVATAR */
+.ava {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: white; font-weight: 600; font-size: 15px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  position: relative;
+  overflow: hidden;
+}
+.ava img { width: 100%; height: 100%; object-fit: cover; }
+.ava.lg { width: 80px; height: 80px; font-size: 28px; }
+.ava.sm { width: 28px; height: 28px; font-size: 11px; }
+.ava.xs { width: 22px; height: 22px; font-size: 9px; }
+.ava-c0 { background: linear-gradient(135deg, #7c5cff, #a78bff); }
+.ava-c1 { background: linear-gradient(135deg, #ff6ec7, #ffb84d); }
+.ava-c2 { background: linear-gradient(135deg, #4dd97a, #56b8ed); }
+.ava-c3 { background: linear-gradient(135deg, #fbbf24, #f87171); }
+.ava-c4 { background: linear-gradient(135deg, #a855f7, #ec4899); }
+.ava-c5 { background: linear-gradient(135deg, #06b6d4, #7c5cff); }
+.ava-c6 { background: linear-gradient(135deg, #84cc16, #fbbf24); }
+.ava-c7 { background: linear-gradient(135deg, #f87171, #ff6ec7); }
+
+/* RIGHT PANE */
+.aside {
+  background: var(--bg-elev);
+  padding: 14px 16px;
+  overflow-y: auto;
+}
+.aside-card {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+.aside-card h3 {
+  margin: 0 0 12px;
+  font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint); font-weight: 600;
+}
+.aside-card .row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.aside-card .row:last-child { border-bottom: none; }
+.aside-card .row .info { flex: 1; min-width: 0; }
+.aside-card .row .nm { font-weight: 500; font-size: 13px; }
+.aside-card .row .sub { font-size: 11px; color: var(--text-faint); font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* PROFILE PAGE */
+.profile-banner {
+  height: 160px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  background-size: cover;
+  background-position: center;
+}
+.profile-card {
+  padding: 0 22px 14px;
+  position: relative;
+  border-bottom: 1px solid var(--line);
+}
+.profile-card .ava {
+  width: 96px; height: 96px;
+  font-size: 32px;
+  margin-top: -48px;
+  border: 4px solid var(--bg);
+}
+.profile-card .actions { float: right; margin-top: 14px; }
+.profile-card .name { font-size: 22px; font-weight: 700; letter-spacing: -.01em; margin-top: 8px; }
+.profile-card .nip05 { color: var(--accent); font-size: 13px; }
+.profile-card .npub-line { color: var(--text-faint); font-family: var(--mono); font-size: 12px; margin-top: 4px; word-break: break-all; }
+.profile-card .about { margin-top: 12px; line-height: 1.5; color: var(--text); }
+.profile-card .stats { display: flex; gap: 22px; margin-top: 14px; font-size: 13px; }
+.profile-card .stats span strong { color: var(--text); }
+.profile-card .stats span { color: var(--text-faint); }
+
+/* THREAD VIEW */
+.thread-head {
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 14px;
+  background: var(--bg);
+  position: sticky; top: 0; z-index: 5;
+}
+.thread-head h1 { margin: 0; font-size: 18px; letter-spacing: -.01em; }
+.back-btn {
+  width: 36px; height: 36px;
+  background: transparent; border: none;
+  border-radius: 50%;
+  color: var(--text);
+  cursor: pointer;
+  display: grid; place-items: center;
+  transition: background .12s var(--easing);
+}
+.back-btn:hover { background: var(--bg-elev-2); }
+.back-btn svg { width: 18px; height: 18px; }
+
+/* SETTINGS */
+.settings-page {
+  padding: 22px;
+  max-width: 600px;
+}
+.settings-page h1 { margin: 0 0 18px; font-size: 22px; letter-spacing: -.01em; }
+.set-section {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 22px;
+  margin-bottom: 14px;
+}
+.set-section h2 {
+  margin: 0 0 14px;
+  font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint); font-weight: 600;
+}
+.relay-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0;
+}
+.relay-row + .relay-row { border-top: 1px solid var(--line); }
+.relay-row .url { flex: 1; font-family: var(--mono); font-size: 13px; word-break: break-all; }
+.relay-row .light { width: 8px; height: 8px; border-radius: 50%; background: var(--good); flex-shrink: 0; }
+.relay-row .light.connecting { background: var(--warn); animation: blink 1s infinite; }
+.relay-row .light.error { background: var(--danger); }
+.relay-input {
+  display: flex; gap: 8px; margin-top: 14px;
+}
+.relay-input input {
+  flex: 1;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: var(--mono); font-size: 13px;
+  color: var(--text);
+  outline: none;
+}
+.relay-input input:focus { border-color: var(--accent); }
+.theme-row { display: flex; gap: 8px; }
+.theme-row button {
+  flex: 1; padding: 10px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer; font-family: inherit; font-size: 13px;
+}
+.theme-row button.active { border-color: var(--accent); background: var(--accent-soft); }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--bg-elev); border: 1px solid var(--line);
+  color: var(--text);
+  padding: 10px 18px; border-radius: 100px;
+  font-size: 13px;
+  box-shadow: var(--shadow);
+  opacity: 0; pointer-events: none;
+  transition: all .25s var(--easing);
+  z-index: 1000;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { border-color: var(--good); }
+.toast.error { border-color: var(--danger); }
+
+/* EMPTY / LOADING */
+.empty {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--text-faint);
+}
+.empty svg { width: 48px; height: 48px; opacity: .3; margin-bottom: 14px; }
+.spinner {
+  width: 28px; height: 28px;
+  border: 3px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 40px auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* LOGIN BANNER */
+.login-banner {
+  margin: 12px 22px;
+  padding: 14px 18px;
+  background: var(--accent-soft);
+  border: 1px solid rgba(124,92,255,.3);
+  border-radius: var(--radius);
+  display: flex; align-items: center; gap: 14px;
+  font-size: 13px;
+}
+.login-banner .ico { color: var(--accent); flex-shrink: 0; }
+.login-banner .ico svg { width: 18px; height: 18px; }
+.login-banner .info { flex: 1; }
+.login-banner button {
+  padding: 8px 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white; border: none;
+  border-radius: 100px;
+  font-family: inherit; font-weight: 600; font-size: 13px;
+  cursor: pointer;
+}
+
+/* PROFILE LINK STYLING (for header brand link) */
+a { color: inherit; }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 100px; }
+
+@media (max-width: 1080px) {
+  .shell { grid-template-columns: 60px 1fr; }
+  .nav .nav-item .label, .nav .brand .name, .nav .brand .sub, .nav .nav-foot, .compose-cta .label { display: none; }
+  .compose-cta { padding: 12px; }
+  .aside { display: none; }
+}
+@media (max-width: 700px) {
+  .shell { grid-template-columns: 1fr; }
+  .nav { display: none; }
+}
+</style>
+</head>
+<body>
+  <div class="shell">
+    <nav class="nav">
+      <a href="../" class="brand" title="Back to demo pod">
+        <div class="brand-mark">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 2 4 16l12 14 12-14z" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <div>
+          <div class="name">Linked Nostr</div>
+          <div class="sub">demo client</div>
+        </div>
+      </a>
+
+      <button class="nav-item active" data-view="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg>
+        <span class="label">Home</span>
+      </button>
+      <button class="nav-item" data-view="global">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span class="label">Global</span>
+      </button>
+      <button class="nav-item" data-view="notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span class="label">Notifications</span>
+        <span class="badge" id="notif-badge" style="display:none">0</span>
+      </button>
+      <button class="nav-item" data-view="profile" id="my-profile-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span class="label">Profile</span>
+      </button>
+      <button class="nav-item" data-view="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="label">Settings</span>
+      </button>
+
+      <button class="compose-cta" id="compose-cta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span class="label">Post</span>
+      </button>
+
+      <div class="nav-foot">
+        <div class="relays" id="relays-status">
+          <span class="relay-light connecting"></span>
+          <span id="relay-count">connecting…</span>
+        </div>
+      </div>
+    </nav>
+
+    <section class="feed-pane">
+      <div id="feed-content"></div>
+    </section>
+
+    <aside class="aside">
+      <div class="aside-card">
+        <h3>About</h3>
+        <div style="font-size:13px;color:var(--text-dim);line-height:1.5">
+          A real Nostr client connected to public relays. Reading is anonymous; posting requires a key (extension, guest, or paste — handled by <a href="https://github.com/melvincarvalho/xlogin" style="color:var(--accent)">xlogin</a>).
+        </div>
+      </div>
+      <div class="aside-card" id="suggested-card">
+        <h3>Suggested follows</h3>
+        <div id="suggested-list">
+          <div style="color:var(--text-faint);font-size:13px">Loading profiles…</div>
+        </div>
+      </div>
+      <div class="aside-card">
+        <h3>Live relays</h3>
+        <div id="relay-status-list" style="font-size:13px;color:var(--text-dim)"></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<!-- xlogin: one-script-tag auth -->
+<script src="https://unpkg.com/xlogin"></script>
+
+<script type="module">
+import { SimplePool, nip19 } from "https://esm.sh/nostr-tools@2.7.2";
+
+/* ============================================================
+ * Config
+ * ============================================================ */
+const DEFAULT_RELAYS = [
+  "wss://relay.damus.io",
+  "wss://nos.lol",
+  "wss://relay.nostr.band",
+  "wss://nostr.wine"
+];
+
+// A small curated set of well-known nostr accounts for the default home feed
+// and "suggested follows". These npubs are public.
+const SEED_FOLLOWS = [
+  "npub180cvv07tjdrrgpa0j7j7tmnyl2yr6yr7l8j4s3evf6u64th6gkwsyjh6w6", // fiatjaf (creator of nostr)
+  "npub1xtscya34g58tk0z605fvr788k263gsu6cy9x0mhnm87echrgufzsevkk5s", // jb55
+  "npub1l2vyh47mk2p0qlsku7hg0vn29faehy9hy34ygaclpn66ukqp3afqutajft", // pablof7z
+  "npub1qny3tkh0acurzla8x3zy4nhrjz5zd8l9sy9jys09umwng00manysew95gx", // odell
+  "npub1az9xj85cmxv8e9j9y80lvqp97crsqdu2fpu3srwthd99qfu9qsgstam8y8", // nvk
+  "npub1sg6plzptd64u62a878hep2kev88swjh3tw00gjsfl8f237lmu63qftjdx7", // jack
+];
+
+/* ============================================================
+ * State
+ * ============================================================ */
+const state = {
+  view: "home",          // home | global | notifications | profile | thread | settings
+  viewParam: null,       // for profile (hex pubkey) or thread (event id)
+  relays: JSON.parse(localStorage.getItem("ln-relays") || "null") || DEFAULT_RELAYS.slice(),
+  follows: JSON.parse(localStorage.getItem("ln-follows") || "null") || SEED_FOLLOWS.map(npubToHex),
+  me: null,              // hex pubkey when logged in
+  isLoggedIn: false,
+  notes: new Map(),      // id → event
+  profiles: new Map(),   // pubkey → kind 0 metadata (parsed)
+  contacts: new Map(),   // pubkey → kind 3 follows list
+  reactions: new Map(),  // event id → Map(emoji → Set(pubkey))
+  myReactions: new Map(),// event id → emoji
+  reposts: new Map(),    // event id → Set(pubkey)
+  replies: new Map(),    // root id → Set(reply id)
+  notifications: [],     // events tagging me
+  relayStatus: new Map(),// url → "connecting"|"open"|"error"
+  composing: { open: false, replyTo: null }
+};
+
+/* ============================================================
+ * Helpers
+ * ============================================================ */
+const $ = (s) => document.querySelector(s);
+const $$ = (s, root = document) => root.querySelectorAll(s);
+const escape = (s) => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function npubToHex(npub) {
+  try { const d = nip19.decode(npub); return d.data; } catch { return null; }
+}
+function hexToNpub(hex) {
+  try { return nip19.npubEncode(hex); } catch { return ""; }
+}
+function shortNpub(hex) {
+  const npub = hexToNpub(hex);
+  if (!npub) return hex.slice(0, 12) + "…";
+  return npub.slice(0, 10) + "…" + npub.slice(-4);
+}
+function nameOf(pubkey) {
+  const m = state.profiles.get(pubkey);
+  return m?.display_name || m?.name || shortNpub(pubkey);
+}
+function avatarOf(pubkey) {
+  const m = state.profiles.get(pubkey);
+  return m?.picture || null;
+}
+function nip05Of(pubkey) {
+  const m = state.profiles.get(pubkey);
+  return m?.nip05 || null;
+}
+function colorClass(hex) {
+  // hash the pubkey to a color class 0-7
+  let h = 0;
+  for (let i = 0; i < hex.length; i++) h = (h * 31 + hex.charCodeAt(i)) >>> 0;
+  return "ava-c" + (h % 8);
+}
+function initials(s) {
+  return s.split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase() || "?";
+}
+function fmtTime(unixSec) {
+  const now = Math.floor(Date.now() / 1000);
+  const d = now - unixSec;
+  if (d < 60) return d + "s";
+  if (d < 3600) return Math.floor(d / 60) + "m";
+  if (d < 86400) return Math.floor(d / 3600) + "h";
+  if (d < 86400 * 7) return Math.floor(d / 86400) + "d";
+  const date = new Date(unixSec * 1000);
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+
+/* ============================================================
+ * Pool
+ * ============================================================ */
+const pool = new SimplePool();
+
+// patch the pool's relay open/close so we can show status
+function trackRelays() {
+  state.relays.forEach(url => {
+    state.relayStatus.set(url, "connecting");
+    try {
+      pool.ensureRelay(url).then(r => {
+        state.relayStatus.set(url, "open");
+        renderRelayStatus();
+      }).catch(() => {
+        state.relayStatus.set(url, "error");
+        renderRelayStatus();
+      });
+    } catch {
+      state.relayStatus.set(url, "error");
+    }
+  });
+  renderRelayStatus();
+}
+function renderRelayStatus() {
+  const open = [...state.relayStatus.values()].filter(s => s === "open").length;
+  const total = state.relayStatus.size;
+  $("#relay-count").textContent = `${open}/${total} relays`;
+  const light = $(".nav-foot .relay-light");
+  if (light) {
+    light.className = "relay-light " + (open === 0 ? "error" : open < total ? "connecting" : "");
+  }
+  // right-pane list
+  const list = $("#relay-status-list");
+  if (list) {
+    list.innerHTML = state.relays.map(url => {
+      const s = state.relayStatus.get(url) || "connecting";
+      const label = url.replace("wss://", "");
+      return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0">
+        <span class="relay-light ${s === 'open' ? '' : s}"></span>
+        <span style="font-family:var(--mono);font-size:12px">${escape(label)}</span>
+      </div>`;
+    }).join("");
+  }
+}
+
+/* ============================================================
+ * Subscriptions
+ * ============================================================ */
+let _activeSubs = [];
+function closeActiveSubs() {
+  _activeSubs.forEach(s => { try { s.close(); } catch {} });
+  _activeSubs = [];
+}
+
+function subscribe(filters, opts = {}) {
+  const sub = pool.subscribeMany(state.relays, filters, {
+    onevent(ev) {
+      if (opts.onevent) opts.onevent(ev);
+    },
+    oneose() { if (opts.oneose) opts.oneose(); }
+  });
+  _activeSubs.push(sub);
+  return sub;
+}
+
+function fetchProfile(pubkey) {
+  if (state.profiles.has(pubkey)) return;
+  state.profiles.set(pubkey, null); // placeholder so we don't refetch
+  pool.subscribeMany(state.relays, [{ kinds: [0], authors: [pubkey], limit: 1 }], {
+    onevent(ev) {
+      try {
+        const meta = JSON.parse(ev.content);
+        state.profiles.set(pubkey, meta);
+        // refresh visible notes by this author
+        $$(`[data-pubkey="${pubkey}"]`).forEach(el => updateNoteAuthorBits(el, pubkey));
+        if (state.view === "profile" && state.viewParam === pubkey) renderProfilePage();
+      } catch {}
+    },
+    oneose() {}
+  });
+}
+
+function fetchProfiles(pubkeys) {
+  const need = pubkeys.filter(p => !state.profiles.has(p));
+  if (!need.length) return;
+  need.forEach(p => state.profiles.set(p, null));
+  pool.subscribeMany(state.relays, [{ kinds: [0], authors: need }], {
+    onevent(ev) {
+      try {
+        const meta = JSON.parse(ev.content);
+        state.profiles.set(ev.pubkey, meta);
+        $$(`[data-pubkey="${ev.pubkey}"]`).forEach(el => updateNoteAuthorBits(el, ev.pubkey));
+        renderSuggested();
+      } catch {}
+    },
+    oneose() {}
+  });
+}
+
+function updateNoteAuthorBits(el, pubkey) {
+  const meta = state.profiles.get(pubkey);
+  if (!meta) return;
+  const nameEl = el.querySelector(".name");
+  if (nameEl) nameEl.textContent = nameOf(pubkey);
+  const nip05El = el.querySelector(".nip05");
+  if (nip05El && meta.nip05) {
+    nip05El.style.display = "inline-flex";
+    nip05El.querySelector("span").textContent = meta.nip05;
+  }
+  const avaEl = el.querySelector(".ava");
+  if (avaEl) {
+    const pic = avatarOf(pubkey);
+    if (pic && !avaEl.querySelector("img")) {
+      const img = new Image();
+      img.onload = () => { avaEl.innerHTML = ""; avaEl.appendChild(img); };
+      img.onerror = () => {};
+      img.src = pic;
+    }
+  }
+}
+
+/* ============================================================
+ * Rendering — feed
+ * ============================================================ */
+function renderHomeView() {
+  const me = state.me || null;
+  const headHTML = `
+    <div class="feed-head">
+      <h1>Home</h1>
+      <span class="count" id="feed-count">…</span>
+    </div>
+    ${state.isLoggedIn ? renderComposer() : ""}
+    ${!state.isLoggedIn ? `
+      <div class="login-banner">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+        <div class="info">
+          <strong>Reading anonymously.</strong> Sign in via the button bottom-right (xlogin) to post, react, and reply.
+        </div>
+      </div>
+    ` : ""}
+    <div id="feed-list"></div>
+  `;
+  $("#feed-content").innerHTML = headHTML;
+  if (state.isLoggedIn) wireComposer();
+
+  // Fetch follows: text notes from people in `follows` list
+  // Also fetch profiles for them
+  fetchProfiles(state.follows);
+  loadFeed({ kinds: [1], authors: state.follows, limit: 60 });
+}
+
+function renderGlobalView() {
+  const headHTML = `
+    <div class="feed-head">
+      <h1>Global</h1>
+      <span class="count" id="feed-count">…</span>
+    </div>
+    <div style="padding:10px 22px;font-size:12px;color:var(--text-faint);border-bottom:1px solid var(--line)">
+      Public firehose. Spam filtered (length >= 8 chars, has profile).
+    </div>
+    <div id="feed-list"></div>
+  `;
+  $("#feed-content").innerHTML = headHTML;
+  loadFeed({ kinds: [1], limit: 60 }, { spamFilter: true });
+}
+
+function renderNotificationsView() {
+  const headHTML = `
+    <div class="feed-head">
+      <h1>Notifications</h1>
+      <span class="count" id="feed-count">…</span>
+    </div>
+    <div id="feed-list"></div>
+  `;
+  $("#feed-content").innerHTML = headHTML;
+  if (!state.me) {
+    $("#feed-list").innerHTML = `<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      <div>Sign in to see notifications.</div>
+    </div>`;
+    return;
+  }
+  loadFeed({ kinds: [1, 7], "#p": [state.me], limit: 50 }, { isNotifications: true });
+}
+
+function loadFeed(filter, opts = {}) {
+  closeActiveSubs();
+  const list = $("#feed-list");
+  list.innerHTML = `<div class="spinner"></div>`;
+  let count = 0;
+  const collected = new Map();
+  const finalize = () => {
+    const events = [...collected.values()].sort((a, b) => b.created_at - a.created_at);
+    if (!events.length) {
+      list.innerHTML = `<div class="empty">No notes yet.<br/>Relays may be slow — try Global or check Settings.</div>`;
+      return;
+    }
+    list.innerHTML = events.map(e => noteHTML(e, opts)).join("");
+    wireFeedHandlers(list);
+    // Fetch missing profiles for events
+    fetchProfiles([...new Set(events.map(e => e.pubkey))]);
+    $("#feed-count").textContent = events.length + " notes";
+  };
+
+  let renderTimeout;
+  subscribe([filter], {
+    onevent(ev) {
+      if (opts.spamFilter) {
+        if (!ev.content || ev.content.length < 8) return;
+        // require a profile (this filter actually excludes accounts we haven't seen kind 0 for, but that's fine after a few seconds)
+      }
+      if (collected.has(ev.id)) return;
+      collected.set(ev.id, ev);
+      state.notes.set(ev.id, ev);
+      count++;
+      // debounced render
+      clearTimeout(renderTimeout);
+      renderTimeout = setTimeout(finalize, 250);
+    },
+    oneose() {
+      clearTimeout(renderTimeout);
+      finalize();
+    }
+  });
+
+  // safety: render after 4s even if no eose
+  setTimeout(() => { if (count > 0) finalize(); else if (list.firstChild?.classList?.contains("spinner")) finalize(); }, 4000);
+}
+
+function renderComposer() {
+  const myMeta = state.me ? state.profiles.get(state.me) : null;
+  const myAva = state.me ? avatarHTML(state.me, "") : "";
+  return `
+    <div class="composer">
+      ${myAva}
+      <div class="body">
+        <textarea id="compose-text" placeholder="What's happening on Nostr?" rows="2"></textarea>
+        <div class="actions">
+          <div class="icon-row">
+            <button class="icon-btn-sm" title="Emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></button>
+            <button class="icon-btn-sm" title="Image (paste URL in text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
+          </div>
+          <div class="right">
+            <span class="charcount" id="char-count">0</span>
+            <button class="btn primary" id="post-btn" disabled>Post</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function wireComposer() {
+  const ta = $("#compose-text");
+  const btn = $("#post-btn");
+  const cc = $("#char-count");
+  if (!ta) return;
+  ta.addEventListener("input", () => {
+    const len = ta.value.length;
+    cc.textContent = len;
+    cc.classList.toggle("over", len > 280);
+    btn.disabled = !ta.value.trim();
+    ta.style.height = "auto";
+    ta.style.height = Math.min(200, ta.scrollHeight) + "px";
+  });
+  ta.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      e.preventDefault();
+      btn.click();
+    }
+  });
+  btn.addEventListener("click", postNote);
+}
+
+async function postNote() {
+  const ta = $("#compose-text");
+  const text = ta.value.trim();
+  if (!text) return;
+  const tags = [];
+  // parse #hashtags
+  for (const m of text.matchAll(/#(\w+)/g)) tags.push(["t", m[1].toLowerCase()]);
+  const ev = {
+    kind: 1,
+    content: text,
+    tags,
+    created_at: Math.floor(Date.now() / 1000),
+    pubkey: state.me
+  };
+  try {
+    const signed = await window.nostr.signEvent(ev);
+    const pubs = pool.publish(state.relays, signed);
+    showToast("Publishing…");
+    let okCount = 0;
+    await Promise.allSettled(pubs.map(p => p.then(() => okCount++)));
+    showToast(`Published to ${okCount}/${state.relays.length} relays`, "success");
+    ta.value = "";
+    $("#post-btn").disabled = true;
+    $("#char-count").textContent = "0";
+    // optimistically prepend to feed
+    state.notes.set(signed.id, signed);
+    if (state.view === "home") {
+      const list = $("#feed-list");
+      const div = document.createElement("div");
+      div.innerHTML = noteHTML(signed);
+      const node = div.firstElementChild;
+      list.insertBefore(node, list.firstChild);
+      wireFeedHandlers(list);
+    }
+  } catch (e) {
+    console.error(e);
+    showToast("Failed to sign — is xlogin/extension enabled?", "error");
+  }
+}
+
+function avatarHTML(pubkey, classes) {
+  const meta = state.profiles.get(pubkey);
+  const cls = "ava " + (classes || "") + " " + colorClass(pubkey);
+  if (meta?.picture) {
+    return `<div class="${cls}" data-pubkey="${pubkey}"><img src="${escape(meta.picture)}" onerror="this.parentNode.innerHTML='${escape(initials(nameOf(pubkey)))}'"></div>`;
+  }
+  return `<div class="${cls}" data-pubkey="${pubkey}">${escape(initials(nameOf(pubkey)))}</div>`;
+}
+
+function noteHTML(ev, opts = {}) {
+  const isReply = ev.tags.some(t => t[0] === "e");
+  const replyTo = isReply ? ev.tags.find(t => t[0] === "e")?.[1] : null;
+  const mentionedPubkeys = ev.tags.filter(t => t[0] === "p").map(t => t[1]);
+  if (mentionedPubkeys.length) fetchProfiles(mentionedPubkeys.slice(0, 8));
+  const extraCls = opts.extraClass ? " " + opts.extraClass : "";
+
+  // Reaction event (kind 7) shown specially in notifications
+  if (ev.kind === 7) {
+    return `
+      <div class="note${extraCls}" data-ev="${ev.id}" data-pubkey="${ev.pubkey}">
+        ${avatarHTML(ev.pubkey, "")}
+        <div class="body">
+          <div class="head">
+            <span class="name">${escape(nameOf(ev.pubkey))}</span>
+            <span class="when">${fmtTime(ev.created_at)}</span>
+          </div>
+          <div class="content" style="color:var(--text-dim)">reacted ${escape(ev.content || "+")} to a note</div>
+        </div>
+      </div>
+    `;
+  }
+
+  const nip05 = nip05Of(ev.pubkey);
+  const nip05HTML = nip05 ? `
+    <span class="nip05" style="display:inline-flex">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 7v6c0 5 3.5 9 8 9s8-4 8-9V7l-8-5z"/></svg>
+      <span>${escape(nip05.replace(/^_@/, ""))}</span>
+    </span>
+  ` : `<span class="nip05" style="display:none"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 7v6c0 5 3.5 9 8 9s8-4 8-9V7l-8-5z"/></svg><span></span></span>`;
+
+  const replyHeader = replyTo ? `
+    <div class="reply-info">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+      <span>Replying to <span class="who" data-thread="${replyTo}">a note</span></span>
+    </div>
+  ` : "";
+
+  const reactions = state.reactions.get(ev.id) || new Map();
+  const liked = state.myReactions.has(ev.id);
+
+  return `
+    <div class="note${extraCls}" data-ev="${ev.id}" data-pubkey="${ev.pubkey}">
+      ${avatarHTML(ev.pubkey, "")}
+      <div class="body">
+        <div class="head">
+          <span class="name" data-profile="${ev.pubkey}">${escape(nameOf(ev.pubkey))}</span>
+          ${nip05HTML}
+          <span class="npub">${escape(shortNpub(ev.pubkey))}</span>
+          <span class="when">${fmtTime(ev.created_at)}</span>
+        </div>
+        ${replyHeader}
+        <div class="content">${renderContent(ev.content, ev.tags)}</div>
+        <div class="actions-row">
+          <button class="act" data-act="reply" data-ev="${ev.id}" title="Reply">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span class="ct"></span>
+          </button>
+          <button class="act ${liked ? "mine" : ""}" data-act="react" data-ev="${ev.id}" title="React">
+            <svg viewBox="0 0 24 24" fill="${liked ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span class="ct">${reactions.size ? [...reactions.values()].reduce((s, set) => s + set.size, 0) : ""}</span>
+          </button>
+          <button class="act" data-act="repost" data-ev="${ev.id}" title="Repost">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <span class="ct"></span>
+          </button>
+          <button class="act" data-act="copy" data-ev="${ev.id}" title="Copy event ID">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderContent(text, tags) {
+  let h = escape(text);
+  // images
+  h = h.replace(/(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))(\?[^\s]*)?/gi, '<img src="$1$3" loading="lazy">');
+  // videos
+  h = h.replace(/(https?:\/\/[^\s]+\.(mp4|webm|mov))(\?[^\s]*)?/gi, '<video src="$1$3" controls></video>');
+  // links (after image/video)
+  h = h.replace(/(^|\s)(https?:\/\/[^\s<]+)/g, (m, sp, url) => {
+    if (url.endsWith(">")) return m;
+    return sp + `<a href="${url}" target="_blank" rel="noopener">${url.length > 60 ? url.slice(0, 57) + "…" : url}</a>`;
+  });
+  // hashtags
+  h = h.replace(/#(\w+)/g, '<span class="hashtag">#$1</span>');
+  // npub mentions inline (nostr:npub1...)
+  h = h.replace(/nostr:(npub1[\w]+)/g, (_, npub) => {
+    const hex = npubToHex(npub);
+    if (hex) {
+      fetchProfile(hex);
+      return `<span class="mention" data-profile="${hex}">@${escape(nameOf(hex))}</span>`;
+    }
+    return npub;
+  });
+  return h;
+}
+
+function wireFeedHandlers(root) {
+  $$(".note", root).forEach(el => el.addEventListener("click", (e) => {
+    if (e.target.closest(".act, .name, .ava, .mention, .who, a, video")) return;
+    openThread(el.dataset.ev);
+  }));
+  $$(".act", root).forEach(el => el.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const a = el.dataset.act;
+    const id = el.dataset.ev;
+    if (a === "reply") openComposer(id);
+    else if (a === "react") toggleReaction(id);
+    else if (a === "repost") repost(id);
+    else if (a === "copy") copyEventId(id);
+  }));
+  $$(".name, .mention, .ava", root).forEach(el => el.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const pk = el.dataset.profile || el.dataset.pubkey;
+    if (pk) openProfile(pk);
+  }));
+  $$(".who[data-thread]", root).forEach(el => el.addEventListener("click", (e) => {
+    e.stopPropagation();
+    openThread(el.dataset.thread);
+  }));
+}
+
+/* ============================================================
+ * Reactions / Reposts / Replies
+ * ============================================================ */
+async function toggleReaction(eventId) {
+  if (!state.me) { showToast("Sign in to react", "error"); return; }
+  const target = state.notes.get(eventId);
+  if (!target) return;
+  if (state.myReactions.has(eventId)) { showToast("Already reacted"); return; }
+  const ev = {
+    kind: 7,
+    content: "+",
+    tags: [["e", eventId], ["p", target.pubkey]],
+    created_at: Math.floor(Date.now() / 1000),
+    pubkey: state.me
+  };
+  try {
+    const signed = await window.nostr.signEvent(ev);
+    pool.publish(state.relays, signed);
+    state.myReactions.set(eventId, "+");
+    if (!state.reactions.has(eventId)) state.reactions.set(eventId, new Map());
+    const r = state.reactions.get(eventId);
+    if (!r.has("+")) r.set("+", new Set());
+    r.get("+").add(state.me);
+    // update UI
+    const noteEl = document.querySelector(`.note[data-ev="${eventId}"] .act[data-act="react"]`);
+    if (noteEl) {
+      noteEl.classList.add("mine");
+      noteEl.querySelector("svg").setAttribute("fill", "currentColor");
+      const ct = noteEl.querySelector(".ct");
+      ct.textContent = ([...r.values()].reduce((s, set) => s + set.size, 0));
+    }
+    showToast("Reacted ❤️", "success");
+  } catch (e) {
+    showToast("Failed to react", "error");
+  }
+}
+
+async function repost(eventId) {
+  if (!state.me) { showToast("Sign in to repost", "error"); return; }
+  const target = state.notes.get(eventId);
+  if (!target) return;
+  const ev = {
+    kind: 6,
+    content: JSON.stringify(target),
+    tags: [["e", eventId, "", "mention"], ["p", target.pubkey]],
+    created_at: Math.floor(Date.now() / 1000),
+    pubkey: state.me
+  };
+  try {
+    const signed = await window.nostr.signEvent(ev);
+    pool.publish(state.relays, signed);
+    showToast("Reposted", "success");
+  } catch {
+    showToast("Failed to repost", "error");
+  }
+}
+
+function copyEventId(eventId) {
+  const nevent = nip19.neventEncode({ id: eventId });
+  navigator.clipboard?.writeText(nevent);
+  showToast("Copied " + nevent.slice(0, 12) + "…", "success");
+}
+
+function openComposer(replyTo) {
+  if (!state.me) { showToast("Sign in to reply", "error"); return; }
+  const target = state.notes.get(replyTo);
+  if (!target) return;
+  // Use a simple modal-style composer for replies
+  const text = prompt("Reply to " + nameOf(target.pubkey) + ":\n\n" + (target.content.slice(0, 80) + (target.content.length > 80 ? "…" : "")));
+  if (!text) return;
+  const tags = [
+    ["e", replyTo, "", "reply"],
+    ["p", target.pubkey]
+  ];
+  for (const m of text.matchAll(/#(\w+)/g)) tags.push(["t", m[1].toLowerCase()]);
+  const ev = {
+    kind: 1,
+    content: text,
+    tags,
+    created_at: Math.floor(Date.now() / 1000),
+    pubkey: state.me
+  };
+  window.nostr.signEvent(ev).then(signed => {
+    pool.publish(state.relays, signed);
+    showToast("Reply published", "success");
+  }).catch(() => showToast("Failed to reply", "error"));
+}
+
+/* ============================================================
+ * Thread view
+ * ============================================================ */
+function openThread(eventId) {
+  state.view = "thread";
+  state.viewParam = eventId;
+  setNavActive(null);
+  renderThreadView(eventId);
+}
+
+function renderThreadView(eventId) {
+  $("#feed-content").innerHTML = `
+    <div class="thread-head">
+      <button class="back-btn" id="thread-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      </button>
+      <h1>Thread</h1>
+    </div>
+    <div id="thread-list"><div class="spinner"></div></div>
+  `;
+  $("#thread-back").addEventListener("click", () => {
+    state.view = "home"; setNavActive("home"); renderHomeView();
+  });
+  closeActiveSubs();
+  // Fetch the root event + all replies (#e tag)
+  const collected = new Map();
+  let rootEv = state.notes.get(eventId);
+  if (rootEv) collected.set(eventId, rootEv);
+
+  let renderTimeout;
+  const finalize = () => {
+    const root = collected.get(eventId) || rootEv;
+    const replies = [...collected.values()]
+      .filter(e => e.id !== eventId && e.kind === 1 && e.tags.some(t => t[0] === "e" && t[1] === eventId))
+      .sort((a, b) => a.created_at - b.created_at);
+    if (!root) {
+      $("#thread-list").innerHTML = `<div class="empty">Couldn't load this note.</div>`;
+      return;
+    }
+    let html = "";
+    // parent (if root is itself a reply)
+    const parentId = root.tags.find(t => t[0] === "e")?.[1];
+    if (parentId && state.notes.get(parentId)) {
+      html += noteHTML(state.notes.get(parentId), { extraClass: "parent" });
+    }
+    html += noteHTML(root, { extraClass: "thread-root" });
+    if (replies.length) {
+      html += `<div style="padding:14px 22px;font-size:12px;color:var(--text-faint);border-bottom:1px solid var(--line)">${replies.length} ${replies.length === 1 ? "reply" : "replies"}</div>`;
+      replies.forEach(r => html += noteHTML(r));
+    }
+    $("#thread-list").innerHTML = html;
+    wireFeedHandlers($("#thread-list"));
+    fetchProfiles([...new Set([...collected.values()].map(e => e.pubkey))]);
+  };
+
+  subscribe([
+    { ids: [eventId] },
+    { kinds: [1], "#e": [eventId], limit: 100 }
+  ], {
+    onevent(ev) {
+      if (collected.has(ev.id)) return;
+      collected.set(ev.id, ev);
+      state.notes.set(ev.id, ev);
+      if (ev.id === eventId) rootEv = ev;
+      clearTimeout(renderTimeout);
+      renderTimeout = setTimeout(finalize, 200);
+    },
+    oneose() { clearTimeout(renderTimeout); finalize(); }
+  });
+}
+
+/* ============================================================
+ * Profile page
+ * ============================================================ */
+function openProfile(pubkey) {
+  state.view = "profile";
+  state.viewParam = pubkey;
+  setNavActive(null);
+  if (pubkey === state.me) setNavActive("profile");
+  renderProfilePage();
+}
+
+function renderProfilePage() {
+  const pk = state.viewParam;
+  const meta = state.profiles.get(pk);
+  if (!meta) {
+    fetchProfile(pk);
+  }
+  const isMe = pk === state.me;
+  $("#feed-content").innerHTML = `
+    <div class="thread-head">
+      <button class="back-btn" id="profile-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      </button>
+      <h1>${escape(nameOf(pk))}</h1>
+    </div>
+    <div class="profile-banner" style="${meta?.banner ? `background-image:url('${escape(meta.banner)}')` : ""}"></div>
+    <div class="profile-card">
+      <div class="actions">
+        ${!isMe && state.me ? `<button class="btn ${state.follows.includes(pk) ? "" : "primary"}" id="follow-btn">${state.follows.includes(pk) ? "Following" : "Follow"}</button>` : ""}
+      </div>
+      ${avatarHTML(pk, "lg")}
+      <div class="name">${escape(nameOf(pk))}</div>
+      ${meta?.nip05 ? `<div class="nip05">✓ ${escape(meta.nip05.replace(/^_@/, ""))}</div>` : ""}
+      <div class="npub-line">${escape(hexToNpub(pk))}</div>
+      ${meta?.about ? `<div class="about">${renderContent(meta.about, [])}</div>` : ""}
+    </div>
+    <div id="profile-notes"><div class="spinner"></div></div>
+  `;
+  $("#profile-back").addEventListener("click", () => {
+    state.view = "home"; setNavActive("home"); renderHomeView();
+  });
+  if ($("#follow-btn")) $("#follow-btn").addEventListener("click", () => toggleFollow(pk));
+
+  closeActiveSubs();
+  const collected = new Map();
+  let renderTimeout;
+  const finalize = () => {
+    const events = [...collected.values()].filter(e => e.kind === 1).sort((a, b) => b.created_at - a.created_at);
+    if (!events.length) {
+      $("#profile-notes").innerHTML = `<div class="empty">No notes yet from this account.</div>`;
+      return;
+    }
+    $("#profile-notes").innerHTML = events.map(e => noteHTML(e)).join("");
+    wireFeedHandlers($("#profile-notes"));
+  };
+  subscribe([{ kinds: [1], authors: [pk], limit: 30 }], {
+    onevent(ev) {
+      if (collected.has(ev.id)) return;
+      collected.set(ev.id, ev);
+      state.notes.set(ev.id, ev);
+      clearTimeout(renderTimeout);
+      renderTimeout = setTimeout(finalize, 250);
+    },
+    oneose() { clearTimeout(renderTimeout); finalize(); }
+  });
+}
+
+function toggleFollow(pk) {
+  const i = state.follows.indexOf(pk);
+  if (i >= 0) state.follows.splice(i, 1);
+  else state.follows.push(pk);
+  localStorage.setItem("ln-follows", JSON.stringify(state.follows));
+  showToast(i >= 0 ? "Unfollowed" : "Followed", "success");
+  renderProfilePage();
+}
+
+/* ============================================================
+ * Settings
+ * ============================================================ */
+function renderSettingsView() {
+  $("#feed-content").innerHTML = `
+    <div class="settings-page">
+      <h1>Settings</h1>
+
+      <div class="set-section">
+        <h2>Identity</h2>
+        ${state.isLoggedIn ? `
+          <div style="display:flex;align-items:center;gap:14px">
+            ${avatarHTML(state.me, "")}
+            <div style="flex:1">
+              <div style="font-weight:600">${escape(nameOf(state.me))}</div>
+              <div style="font-size:11px;color:var(--text-faint);font-family:var(--mono);word-break:break-all">${escape(hexToNpub(state.me))}</div>
+            </div>
+            <button class="btn" onclick="window.xlogin?.logout()">Logout</button>
+          </div>
+        ` : `
+          <div style="font-size:14px;color:var(--text-dim);line-height:1.5">
+            Not signed in. Click the <strong>Login</strong> button bottom-right to sign in via xlogin (extension, guest key, or paste a private key).
+          </div>
+        `}
+      </div>
+
+      <div class="set-section">
+        <h2>Theme</h2>
+        <div class="theme-row">
+          <button class="${document.documentElement.dataset.theme === "light" ? "active" : ""}" data-theme="light">☀ Day</button>
+          <button class="${document.documentElement.dataset.theme === "dark" ? "active" : ""}" data-theme="dark">🌙 Night</button>
+        </div>
+      </div>
+
+      <div class="set-section">
+        <h2>Relays</h2>
+        <div id="relay-list">
+          ${state.relays.map(url => {
+            const s = state.relayStatus.get(url) || "connecting";
+            return `<div class="relay-row">
+              <span class="light ${s === 'open' ? '' : s}"></span>
+              <div class="url">${escape(url)}</div>
+              <button class="btn" data-rm-relay="${escape(url)}">Remove</button>
+            </div>`;
+          }).join("")}
+        </div>
+        <div class="relay-input">
+          <input id="add-relay" placeholder="wss://relay.example.com" />
+          <button class="btn primary" id="add-relay-btn">Add</button>
+        </div>
+      </div>
+
+      <div class="set-section">
+        <h2>About</h2>
+        <div style="font-size:13px;color:var(--text-dim);line-height:1.6">
+          A real-protocol Nostr client. Built with <a href="https://github.com/nbd-wtf/nostr-tools" style="color:var(--accent)">nostr-tools</a> for the relay code and <a href="https://github.com/melvincarvalho/xlogin" style="color:var(--accent)">xlogin</a> for auth.<br/>
+          Part of <a href="../" style="color:var(--accent)">linkedobjects.org/demo</a>.
+        </div>
+      </div>
+    </div>
+  `;
+  $$("[data-theme]").forEach(el => el.addEventListener("click", () => {
+    document.documentElement.dataset.theme = el.dataset.theme;
+    localStorage.setItem("ln-theme", el.dataset.theme);
+    renderSettingsView();
+  }));
+  $$("[data-rm-relay]").forEach(el => el.addEventListener("click", () => {
+    const url = el.dataset.rmRelay;
+    state.relays = state.relays.filter(r => r !== url);
+    localStorage.setItem("ln-relays", JSON.stringify(state.relays));
+    renderSettingsView();
+    trackRelays();
+  }));
+  $("#add-relay-btn").addEventListener("click", () => {
+    const url = $("#add-relay").value.trim();
+    if (!url.startsWith("wss://")) { showToast("Use wss:// URL", "error"); return; }
+    if (state.relays.includes(url)) return;
+    state.relays.push(url);
+    localStorage.setItem("ln-relays", JSON.stringify(state.relays));
+    renderSettingsView();
+    trackRelays();
+  });
+}
+
+/* ============================================================
+ * Suggested follows in right pane
+ * ============================================================ */
+function renderSuggested() {
+  const list = $("#suggested-list");
+  if (!list) return;
+  const candidates = SEED_FOLLOWS.map(npubToHex).filter(Boolean).slice(0, 6);
+  list.innerHTML = candidates.map(pk => {
+    const meta = state.profiles.get(pk);
+    return `
+      <div class="row">
+        ${avatarHTML(pk, "sm")}
+        <div class="info">
+          <div class="nm" data-profile="${pk}" style="cursor:pointer">${escape(nameOf(pk))}</div>
+          <div class="sub">${escape(meta?.nip05 || shortNpub(pk))}</div>
+        </div>
+        <button class="btn" data-follow="${pk}" style="padding:4px 12px;font-size:12px">${state.follows.includes(pk) ? "✓" : "+"}</button>
+      </div>
+    `;
+  }).join("");
+  $$(".row [data-profile]", list).forEach(el => el.addEventListener("click", () => openProfile(el.dataset.profile)));
+  $$("[data-follow]", list).forEach(el => el.addEventListener("click", () => {
+    const pk = el.dataset.follow;
+    const i = state.follows.indexOf(pk);
+    if (i >= 0) state.follows.splice(i, 1);
+    else state.follows.push(pk);
+    localStorage.setItem("ln-follows", JSON.stringify(state.follows));
+    renderSuggested();
+  }));
+}
+
+/* ============================================================
+ * View routing
+ * ============================================================ */
+function setNavActive(view) {
+  $$(".nav-item[data-view]").forEach(el => el.classList.toggle("active", el.dataset.view === view));
+}
+function switchView(v) {
+  state.view = v; state.viewParam = null;
+  setNavActive(v);
+  if (v === "home") renderHomeView();
+  else if (v === "global") renderGlobalView();
+  else if (v === "notifications") renderNotificationsView();
+  else if (v === "profile") {
+    if (state.me) { state.viewParam = state.me; renderProfilePage(); }
+    else { showToast("Sign in to see your profile", "error"); state.view = "home"; setNavActive("home"); renderHomeView(); }
+  }
+  else if (v === "settings") renderSettingsView();
+}
+$$(".nav-item[data-view]").forEach(el => el.addEventListener("click", () => switchView(el.dataset.view)));
+$("#compose-cta").addEventListener("click", () => {
+  if (!state.isLoggedIn) { showToast("Sign in to post (button bottom-right)", "error"); window.xlogin?.login?.(); return; }
+  if (state.view !== "home") switchView("home");
+  setTimeout(() => $("#compose-text")?.focus(), 100);
+});
+
+/* ============================================================
+ * xlogin integration
+ * ============================================================ */
+document.addEventListener("xlogin", async (e) => {
+  if (e.detail.type !== "nostr") return; // we only handle nostr login
+  state.me = e.detail.id;
+  state.isLoggedIn = true;
+  showToast("Signed in as " + shortNpub(state.me), "success");
+  fetchProfile(state.me);
+  // re-render current view to show composer
+  if (state.view === "home") renderHomeView();
+  else if (state.view === "settings") renderSettingsView();
+});
+document.addEventListener("xlogout", () => {
+  state.me = null;
+  state.isLoggedIn = false;
+  showToast("Signed out");
+  if (state.view === "home") renderHomeView();
+  else if (state.view === "settings") renderSettingsView();
+});
+// If xlogin auto-restored a session before we registered the listener, catch it
+setTimeout(() => {
+  if (window.xlogin?.type === "nostr" && window.xlogin?.id && !state.isLoggedIn) {
+    state.me = window.xlogin.id;
+    state.isLoggedIn = true;
+    fetchProfile(state.me);
+    if (state.view === "home") renderHomeView();
+  }
+}, 500);
+
+/* ============================================================
+ * Toast
+ * ============================================================ */
+function showToast(msg, kind) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.className = "toast show " + (kind || "");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove("show"), 2400);
+}
+
+/* ============================================================
+ * Init
+ * ============================================================ */
+const savedTheme = localStorage.getItem("ln-theme");
+if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+
+trackRelays();
+renderSuggested();
+fetchProfiles(SEED_FOLLOWS.map(npubToHex).filter(Boolean));
+switchView("home");
+
+// Initial first-time toast
+setTimeout(() => {
+  if (!localStorage.getItem("ln-seen")) {
+    showToast("Real notes from public Nostr relays. Click the bottom-right button to sign in.");
+    localStorage.setItem("ln-seen", "1");
+  }
+}, 1200);
+</script>
+</body>
+</html>
