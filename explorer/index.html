@@ -1,0 +1,1217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Linked Objects · Demo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%237c5cff' d='M10 13a5 5 0 0 1 0-7l3-3a5 5 0 0 1 7 7l-1.5 1.5M14 11a5 5 0 0 1 0 7l-3 3a5 5 0 0 1-7-7l1.5-1.5'/%3E%3C/svg%3E" />
+<style>
+  :root {
+    --bg: #0b0d12;
+    --bg-elev: #11141b;
+    --bg-elev-2: #161a23;
+    --line: #232836;
+    --text: #e7ecf4;
+    --text-dim: #9aa4b8;
+    --text-faint: #5d6680;
+    --accent: #7c5cff;
+    --accent-2: #00d4ff;
+    --accent-soft: rgba(124, 92, 255, .15);
+    --good: #34d399;
+    --warn: #fbbf24;
+    --danger: #f87171;
+    --shadow: 0 20px 50px -20px rgba(0,0,0,.6), 0 8px 16px -8px rgba(0,0,0,.4);
+    --radius: 14px;
+    --radius-sm: 8px;
+    --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Inter", "Segoe UI", Roboto, sans-serif;
+    --easing: cubic-bezier(.2,.8,.2,1);
+  }
+  [data-theme="light"] {
+    --bg: #f6f7fb;
+    --bg-elev: #ffffff;
+    --bg-elev-2: #f0f2f8;
+    --line: #e3e6ef;
+    --text: #1a1f2e;
+    --text-dim: #5a6275;
+    --text-faint: #98a0b3;
+    --accent: #6b46e5;
+    --accent-2: #0099cc;
+    --accent-soft: rgba(107, 70, 229, .1);
+    --shadow: 0 10px 30px -12px rgba(20,30,60,.18), 0 4px 8px -4px rgba(20,30,60,.06);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(124,92,255,.18), transparent 60%),
+      radial-gradient(800px 400px at 110% 110%, rgba(0,212,255,.12), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  [data-theme="light"] body::before {
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(107,70,229,.08), transparent 60%),
+      radial-gradient(800px 400px at 110% 110%, rgba(0,153,204,.06), transparent 60%);
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    grid-template-rows: 56px 1fr;
+    height: 100vh;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  /* HEADER */
+  header {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px;
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    font-weight: 600; letter-spacing: -.01em;
+  }
+  .brand-mark {
+    width: 30px; height: 30px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border-radius: 9px;
+    box-shadow: 0 4px 14px rgba(124,92,255,.4);
+  }
+  .brand-mark svg { width: 18px; height: 18px; }
+  .brand small {
+    color: var(--text-faint); font-weight: 400; margin-left: 8px;
+    font-size: 12px;
+    padding-left: 12px; border-left: 1px solid var(--line);
+  }
+  .header-actions { display: flex; gap: 6px; align-items: center; }
+  .icon-btn {
+    width: 34px; height: 34px;
+    display: grid; place-items: center;
+    background: transparent; border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all .15s var(--easing);
+  }
+  .icon-btn:hover {
+    background: var(--bg-elev-2);
+    color: var(--text);
+    border-color: var(--line);
+  }
+  .icon-btn svg { width: 16px; height: 16px; }
+  .kbd {
+    font-family: var(--mono); font-size: 11px;
+    padding: 2px 6px;
+    background: var(--bg-elev-2);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    color: var(--text-dim);
+  }
+
+  /* SIDEBAR */
+  aside {
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .nav-label {
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .08em;
+    color: var(--text-faint);
+    padding: 0 10px 10px;
+  }
+  .nav { display: flex; flex-direction: column; gap: 2px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px;
+    background: transparent; border: none; text-align: left;
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    cursor: pointer; font-family: inherit; font-size: 14px;
+    position: relative;
+    transition: all .15s var(--easing);
+  }
+  .nav-item:hover { background: var(--bg-elev-2); color: var(--text); }
+  .nav-item.active {
+    background: var(--accent-soft);
+    color: var(--text);
+  }
+  .nav-item.active::before {
+    content: ""; position: absolute; left: 0; top: 8px; bottom: 8px;
+    width: 3px; background: var(--accent); border-radius: 0 3px 3px 0;
+  }
+  .nav-item .ico {
+    width: 28px; height: 28px;
+    display: grid; place-items: center;
+    background: var(--bg-elev-2); border-radius: 7px;
+    flex-shrink: 0;
+  }
+  .nav-item.active .ico {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white;
+  }
+  .nav-item .ico svg { width: 14px; height: 14px; }
+  .nav-item .meta {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column;
+  }
+  .nav-item .name { font-weight: 500; }
+  .nav-item .type { font-size: 11px; color: var(--text-faint); font-family: var(--mono); }
+  .nav-item .num { font-size: 11px; color: var(--text-faint); font-family: var(--mono); }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--text-faint);
+    line-height: 1.6;
+  }
+  .sidebar-footer .row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 6px;
+  }
+
+  /* MAIN */
+  main {
+    display: grid;
+    grid-template-columns: 1.4fr .9fr;
+    gap: 12px;
+    overflow: hidden;
+  }
+  main.no-source { grid-template-columns: 1fr; }
+
+  .pane {
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .pane-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-elev);
+  }
+  .pane-title {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; font-weight: 500;
+    color: var(--text-dim);
+  }
+  .pane-title .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .pane-title .url {
+    font-family: var(--mono); font-size: 12px; color: var(--text-faint);
+    background: var(--bg-elev-2);
+    padding: 3px 8px; border-radius: 5px;
+    border: 1px solid var(--line);
+  }
+  .pane-body {
+    flex: 1; overflow: auto;
+  }
+
+  /* RENDERED */
+  #rendered {
+    padding: 32px 40px;
+    animation: fadeUp .35s var(--easing);
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* PROFILE */
+  .profile-hero {
+    display: flex; gap: 24px; align-items: center;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 24px;
+  }
+  .avatar {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid; place-items: center;
+    color: white; font-size: 32px; font-weight: 600;
+    box-shadow: 0 10px 30px rgba(124,92,255,.4);
+    flex-shrink: 0;
+  }
+  .profile-hero h1 {
+    margin: 0 0 4px;
+    font-size: 28px; font-weight: 700; letter-spacing: -.02em;
+  }
+  .profile-hero .nick { color: var(--text-dim); font-family: var(--mono); font-size: 14px; }
+  .profile-hero .bio { color: var(--text-dim); margin-top: 12px; line-height: 1.5; max-width: 60ch; }
+  .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .profile-section h3 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--text-faint); margin: 0 0 12px;
+  }
+  .profile-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    text-decoration: none;
+    transition: background .15s var(--easing);
+  }
+  .profile-link:hover { background: var(--bg-elev-2); }
+  .profile-link svg { width: 16px; height: 16px; color: var(--text-dim); }
+  .profile-link .l { color: var(--text-dim); font-family: var(--mono); font-size: 13px; }
+  .knows-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .knows-chip {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px 6px 6px;
+    background: var(--bg-elev-2);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all .15s var(--easing);
+  }
+  .knows-chip:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .knows-chip .a {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white; font-size: 11px; font-weight: 600;
+    display: grid; place-items: center;
+  }
+
+  /* TASKS */
+  .tasks-head h1 { margin: 0 0 6px; font-size: 24px; letter-spacing: -.01em; }
+  .tasks-head .desc { color: var(--text-dim); margin: 0 0 18px; }
+  .progress {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
+  }
+  .progress-bar {
+    flex: 1; height: 8px;
+    background: var(--bg-elev-2);
+    border-radius: 100px; overflow: hidden;
+  }
+  .progress-bar > div {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    transition: width .4s var(--easing);
+    border-radius: 100px;
+  }
+  .progress-text { font-family: var(--mono); font-size: 13px; color: var(--text-dim); min-width: 60px; text-align: right; }
+  .task-list { display: flex; flex-direction: column; gap: 4px; }
+  .task {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background .15s var(--easing);
+  }
+  .task:hover { background: var(--bg-elev-2); }
+  .task .check {
+    width: 20px; height: 20px;
+    border: 2px solid var(--text-faint);
+    border-radius: 6px;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+    transition: all .2s var(--easing);
+  }
+  .task.done .check {
+    background: var(--accent); border-color: var(--accent);
+  }
+  .task .check svg {
+    width: 12px; height: 12px; color: white;
+    opacity: 0; transform: scale(.5);
+    transition: all .2s var(--easing);
+  }
+  .task.done .check svg { opacity: 1; transform: scale(1); }
+  .task .label { flex: 1; }
+  .task.done .label { color: var(--text-faint); text-decoration: line-through; }
+  .task .badge {
+    font-size: 11px; font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 100px;
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  .badge.high { background: rgba(248,113,113,.15); color: var(--danger); }
+  .badge.med { background: rgba(251,191,36,.15); color: var(--warn); }
+  .badge.low { background: rgba(52,211,153,.15); color: var(--good); }
+
+  /* NOTES */
+  .note h1 { margin: 0 0 8px; font-size: 26px; letter-spacing: -.01em; }
+  .note .meta {
+    color: var(--text-dim); font-size: 13px;
+    display: flex; gap: 14px; margin-bottom: 24px;
+    padding-bottom: 16px; border-bottom: 1px solid var(--line);
+  }
+  .note .body { line-height: 1.7; color: var(--text); max-width: 70ch; }
+  .note .body h2 { margin: 24px 0 8px; font-size: 18px; }
+  .note .body h3 { margin: 18px 0 6px; font-size: 15px; color: var(--text-dim); }
+  .note .body p { margin: 8px 0; }
+  .note .body code {
+    font-family: var(--mono); font-size: 13px;
+    background: var(--bg-elev-2); padding: 2px 6px;
+    border-radius: 4px; border: 1px solid var(--line);
+  }
+  .note .body a { color: var(--accent-2); }
+  .note .body ul { margin: 8px 0; padding-left: 22px; }
+  .note .tags { display: flex; gap: 6px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .note .tag {
+    font-size: 12px; padding: 4px 10px;
+    background: var(--accent-soft); color: var(--accent);
+    border-radius: 100px;
+    font-family: var(--mono);
+  }
+  [data-theme="light"] .note .tag { color: var(--accent); }
+
+  /* PLAYLIST */
+  .pl-head {
+    display: flex; gap: 22px; margin-bottom: 24px;
+    padding-bottom: 24px; border-bottom: 1px solid var(--line);
+  }
+  .pl-cover {
+    width: 140px; height: 140px;
+    border-radius: var(--radius);
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,.3), transparent 50%),
+      linear-gradient(135deg, var(--accent), var(--accent-2), #ff6ec7);
+    box-shadow: 0 16px 40px rgba(124,92,255,.45);
+    flex-shrink: 0;
+    display: grid; place-items: center;
+  }
+  .pl-cover svg { width: 48px; height: 48px; color: rgba(255,255,255,.85); }
+  .pl-info { display: flex; flex-direction: column; justify-content: center; }
+  .pl-info .label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--text-faint);
+  }
+  .pl-info h1 { margin: 4px 0 8px; font-size: 32px; letter-spacing: -.02em; }
+  .pl-info .creator { color: var(--text-dim); }
+  .pl-controls { margin-top: 14px; display: flex; gap: 10px; }
+  .pl-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white; border: none; border-radius: 100px;
+    font-family: inherit; font-weight: 500; font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(124,92,255,.4);
+    transition: transform .15s var(--easing);
+  }
+  .pl-btn:hover { transform: translateY(-1px); }
+  .pl-btn svg { width: 14px; height: 14px; }
+  .track-list { display: flex; flex-direction: column; }
+  .track {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: center; gap: 14px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background .15s var(--easing);
+  }
+  .track:hover { background: var(--bg-elev-2); }
+  .track .num { color: var(--text-faint); font-family: var(--mono); font-size: 13px; text-align: center; }
+  .track.playing .num { display: none; }
+  .track .eq { display: none; align-items: end; gap: 2px; height: 14px; }
+  .track.playing .eq { display: flex; }
+  .track .eq span {
+    width: 3px; background: var(--accent);
+    animation: bounce 1s infinite var(--easing);
+  }
+  .track .eq span:nth-child(1) { animation-delay: 0s; }
+  .track .eq span:nth-child(2) { animation-delay: .15s; }
+  .track .eq span:nth-child(3) { animation-delay: .3s; }
+  @keyframes bounce {
+    0%, 100% { height: 4px; }
+    50% { height: 14px; }
+  }
+  .track .ti { display: flex; flex-direction: column; }
+  .track .ti .t { font-weight: 500; }
+  .track.playing .ti .t { color: var(--accent); }
+  .track .ti .a { font-size: 12px; color: var(--text-dim); }
+  .track .dur { color: var(--text-faint); font-family: var(--mono); font-size: 13px; }
+
+  /* FOLDER */
+  .folder-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: 16px; border-bottom: 1px solid var(--line); margin-bottom: 16px;
+  }
+  .breadcrumb { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 14px; }
+  .breadcrumb .crumb { color: var(--text-dim); cursor: pointer; }
+  .breadcrumb .crumb:hover { color: var(--text); }
+  .breadcrumb .crumb.cur { color: var(--text); }
+  .breadcrumb .sep { color: var(--text-faint); }
+  .folder-stats { color: var(--text-faint); font-size: 12px; font-family: var(--mono); }
+  .files {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+  }
+  .file {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 16px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    text-align: center;
+    transition: all .15s var(--easing);
+  }
+  .file:hover { background: var(--bg-elev-2); transform: translateY(-2px); }
+  .file .fi {
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    border-radius: 9px;
+  }
+  .file.dir .fi { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; }
+  .file.doc .fi { background: rgba(0,212,255,.15); color: var(--accent-2); }
+  .file.img .fi { background: rgba(52,211,153,.15); color: var(--good); }
+  .file.code .fi { background: rgba(251,191,36,.15); color: var(--warn); }
+  .file.other .fi { background: var(--bg-elev-2); color: var(--text-dim); }
+  .file .fi svg { width: 22px; height: 22px; }
+  .file .fn {
+    font-size: 12px;
+    word-break: break-all;
+    line-height: 1.3;
+  }
+  .file .fs { font-size: 10px; color: var(--text-faint); font-family: var(--mono); }
+
+  /* SOURCE */
+  #source {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.65;
+    padding: 18px 20px;
+    color: var(--text-dim);
+    white-space: pre;
+  }
+  .tok-key { color: var(--accent-2); }
+  .tok-str { color: var(--good); }
+  .tok-num { color: var(--warn); }
+  .tok-bool { color: var(--accent); }
+  .tok-null { color: var(--text-faint); }
+  .tok-link { color: var(--accent); cursor: pointer; text-decoration: underline; text-decoration-color: var(--accent-soft); text-underline-offset: 2px; }
+  .tok-link:hover { text-decoration-color: var(--accent); }
+  .tok-cls { color: var(--accent); font-style: italic; }
+
+  .source-tools { display: flex; gap: 6px; align-items: center; }
+  .ghost-btn {
+    background: transparent; border: 1px solid var(--line);
+    color: var(--text-dim);
+    padding: 5px 10px; border-radius: 6px;
+    cursor: pointer; font-family: inherit; font-size: 12px;
+    transition: all .15s var(--easing);
+  }
+  .ghost-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--bg-elev); border: 1px solid var(--line);
+    color: var(--text);
+    padding: 10px 16px; border-radius: 100px;
+    font-size: 13px;
+    box-shadow: var(--shadow);
+    opacity: 0; pointer-events: none;
+    transition: all .25s var(--easing);
+    z-index: 100;
+  }
+  .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* HELP MODAL */
+  .modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.5);
+    backdrop-filter: blur(4px);
+    display: none;
+    place-items: center;
+    z-index: 200;
+    animation: fadeIn .15s ease;
+  }
+  .modal-bg.on { display: grid; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px;
+    width: min(440px, 90vw);
+    box-shadow: var(--shadow);
+  }
+  .modal h2 { margin: 0 0 16px; font-size: 18px; }
+  .shortcut-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0;
+    font-size: 14px;
+  }
+  .shortcut-row + .shortcut-row { border-top: 1px solid var(--line); }
+  .shortcut-row .keys { display: flex; gap: 4px; }
+
+  /* responsive */
+  @media (max-width: 980px) {
+    .app { grid-template-columns: 1fr; grid-template-rows: 56px auto 1fr; }
+    aside { max-height: 200px; }
+    main { grid-template-columns: 1fr; }
+    #rendered { padding: 20px; }
+    .profile-grid { grid-template-columns: 1fr; }
+  }
+
+  /* scrollbars */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 100px; border: 2px solid var(--bg-elev); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.4" stroke-linecap="round">
+            <path d="M10 13a5 5 0 0 1 0-7l3-3a5 5 0 0 1 7 7l-1.5 1.5"/>
+            <path d="M14 11a5 5 0 0 1 0 7l-3 3a5 5 0 0 1-7-7l1.5-1.5"/>
+          </svg>
+        </div>
+        <a href="../" style="color:inherit;text-decoration:none">Linked Objects</a>
+        <small>multi-pane explorer · <a href="../" style="color:var(--text-dim);text-decoration:none">↩ back to pod</a></small>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="toggle-source" title="Toggle source pane (J)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </button>
+        <button class="icon-btn" id="toggle-theme" title="Toggle theme (T)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="theme-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="icon-btn" id="show-help" title="Help (?)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <aside>
+      <div class="nav-label">Resources</div>
+      <nav class="nav" id="nav"></nav>
+      <div class="sidebar-footer">
+        <div class="row"><span>5 resources</span><span class="kbd">1–5</span></div>
+        <div class="row"><span>Toggle source</span><span class="kbd">J</span></div>
+        <div class="row"><span>Help</span><span class="kbd">?</span></div>
+      </div>
+    </aside>
+
+    <main id="main">
+      <section class="pane">
+        <div class="pane-head">
+          <div class="pane-title">
+            <span class="dot"></span>
+            <span id="rendered-title">Loading…</span>
+          </div>
+          <div class="pane-title">
+            <span class="url" id="rendered-url"></span>
+          </div>
+        </div>
+        <div class="pane-body" id="rendered"></div>
+      </section>
+      <section class="pane" id="source-pane">
+        <div class="pane-head">
+          <div class="pane-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" stroke-linecap="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            <span>JSON-LD source</span>
+          </div>
+          <div class="source-tools">
+            <button class="ghost-btn" id="copy-source">Copy</button>
+          </div>
+        </div>
+        <div class="pane-body"><pre id="source"></pre></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="modal-bg" id="modal-bg">
+    <div class="modal">
+      <h2>Keyboard shortcuts</h2>
+      <div class="shortcut-row"><span>Switch resource</span><div class="keys"><span class="kbd">1</span><span class="kbd">…</span><span class="kbd">5</span></div></div>
+      <div class="shortcut-row"><span>Toggle JSON-LD pane</span><div class="keys"><span class="kbd">J</span></div></div>
+      <div class="shortcut-row"><span>Toggle theme</span><div class="keys"><span class="kbd">T</span></div></div>
+      <div class="shortcut-row"><span>Copy source</span><div class="keys"><span class="kbd">C</span></div></div>
+      <div class="shortcut-row"><span>Show this help</span><div class="keys"><span class="kbd">?</span></div></div>
+      <div class="shortcut-row"><span>Close</span><div class="keys"><span class="kbd">Esc</span></div></div>
+    </div>
+  </div>
+
+<script>
+/* ----- DATA: 5 linked-object resources, with cross-links ----- */
+const BASE = "https://linkedobjects.org/demo/";
+
+const DATA = {
+  profile: {
+    id: "profile",
+    label: "Ada Lovelace",
+    type: "Person",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    doc: {
+      "@context": { "@vocab": "http://xmlns.com/foaf/0.1/" },
+      "@id": BASE + "profile",
+      "@type": "Person",
+      "name": "Ada Lovelace",
+      "nick": "ada",
+      "bio": "Mathematician. Translator. Programmer of an analytical engine that has never been built. Currently exploring the poetic side of recursion.",
+      "homepage": "https://example.org/ada",
+      "mbox": "mailto:ada@example.org",
+      "knows": [
+        { "@id": BASE + "profile/charles", "name": "Charles Babbage" },
+        { "@id": BASE + "profile/mary",    "name": "Mary Somerville" }
+      ],
+      "made": { "@id": BASE + "notes" },
+      "currentProject": { "@id": BASE + "tasks" }
+    }
+  },
+
+  tasks: {
+    id: "tasks",
+    label: "Reading list & to-dos",
+    type: "TaskList",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+    doc: {
+      "@context": { "@vocab": "https://w3id.org/workflow#" },
+      "@id": BASE + "tasks",
+      "@type": "TaskList",
+      "title": "Reading list & to-dos",
+      "description": "Things I want to think about this week.",
+      "owner": { "@id": BASE + "profile" },
+      "items": [
+        { "@id": "#t1", "label": "Read Bush — As We May Think", "priority": "high",   "done": true  },
+        { "@id": "#t2", "label": "Sketch a Memex inbox UI",      "priority": "high",   "done": false },
+        { "@id": "#t3", "label": "Try JSON-LD framing on a feed","priority": "medium", "done": false },
+        { "@id": "#t4", "label": "Reply to Charles re: notation","priority": "medium", "done": true  },
+        { "@id": "#t5", "label": "Walk by the river",            "priority": "low",    "done": false },
+        { "@id": "#t6", "label": "Refactor the playlist renderer","priority": "low",   "done": false }
+      ]
+    }
+  },
+
+  notes: {
+    id: "notes",
+    label: "On loops, in two senses",
+    type: "TextDocument",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>',
+    doc: {
+      "@context": { "@vocab": "https://schema.org/" },
+      "@id": BASE + "notes",
+      "@type": "TextDocument",
+      "headline": "On loops, in two senses",
+      "author": { "@id": BASE + "profile" },
+      "datePublished": "2026-04-19",
+      "encodingFormat": "text/markdown",
+      "keywords": ["recursion", "music", "linked-data"],
+      "text": "Two kinds of loops have been on my mind.\n\n## The first kind\n\nThe loop a program makes when it calls *itself*. A function reaches down its own throat and pulls out the next term. Done badly, this is a stack overflow. Done well, it's a fractal.\n\n## The second kind\n\nThe loop a record makes on a turntable — a closed groove that lets a phrase return changed because you have changed. See the [playlist](" + BASE + "playlist) I've been spinning while I think about this.\n\n## What links them\n\nIn both cases, the **same shape recurs** but the *content* shifts. That's also what a `@context` does in JSON-LD: the keys recur, the values link out.\n\n```\n{ \"@context\": { \"@vocab\": \"https://schema.org/\" } }\n```\n\nI think there's a longer essay here. For now, a paragraph."
+    }
+  },
+
+  playlist: {
+    id: "playlist",
+    label: "Loops & long-form",
+    type: "Playlist",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+    doc: {
+      "@context": { "@vocab": "https://schema.org/" },
+      "@id": BASE + "playlist",
+      "@type": "MusicPlaylist",
+      "name": "Loops & long-form",
+      "creator": { "@id": BASE + "profile" },
+      "track": [
+        { "@type": "MusicRecording", "name": "Spiegel im Spiegel",  "byArtist": "Arvo Pärt",        "duration": "PT9M02S" },
+        { "@type": "MusicRecording", "name": "Music for Airports 1/1", "byArtist": "Brian Eno",     "duration": "PT17M21S" },
+        { "@type": "MusicRecording", "name": "Avril 14th",          "byArtist": "Aphex Twin",       "duration": "PT2M05S" },
+        { "@type": "MusicRecording", "name": "Vespers",             "byArtist": "Alvin Lucier",     "duration": "PT5M40S" },
+        { "@type": "MusicRecording", "name": "On the Nature of Daylight", "byArtist": "Max Richter","duration": "PT6M14S" },
+        { "@type": "MusicRecording", "name": "Vladimir's Blues",    "byArtist": "Max Richter",      "duration": "PT1M44S" }
+      ]
+    }
+  },
+
+  folder: {
+    id: "folder",
+    label: "/projects/linked-objects/",
+    type: "Container",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
+    doc: {
+      "@context": { "@vocab": "http://www.w3.org/ns/ldp#" },
+      "@id": BASE + "folder",
+      "@type": "BasicContainer",
+      "title": "/projects/linked-objects/",
+      "contains": [
+        { "@id": "./drafts",          "@type": "BasicContainer", "size": null },
+        { "@id": "./assets",          "@type": "BasicContainer", "size": null },
+        { "@id": "./README.md",       "@type": "Resource", "format": "text/markdown",  "size": 2840 },
+        { "@id": "./manifest.jsonld", "@type": "Resource", "format": "application/ld+json","size": 1180 },
+        { "@id": "./hero.png",        "@type": "Resource", "format": "image/png",      "size": 184320 },
+        { "@id": "./demo.js",         "@type": "Resource", "format": "text/javascript","size": 9216 },
+        { "@id": "./demo.css",        "@type": "Resource", "format": "text/css",       "size": 6144 },
+        { "@id": "./LICENSE",         "@type": "Resource", "format": "text/plain",     "size": 1064 }
+      ]
+    }
+  }
+};
+
+const ORDER = ["profile", "tasks", "notes", "playlist", "folder"];
+
+/* ----- STATE ----- */
+const state = {
+  current: "profile",
+  showSource: true,
+  // task completion is in DATA so it persists during the session; nothing else to keep
+};
+
+/* ----- DOM ----- */
+const $ = (s) => document.querySelector(s);
+const navEl = $("#nav");
+const renderedEl = $("#rendered");
+const sourceEl = $("#source");
+const main = $("#main");
+const titleEl = $("#rendered-title");
+const urlEl = $("#rendered-url");
+const toast = $("#toast");
+
+/* ----- NAV ----- */
+function buildNav() {
+  navEl.innerHTML = "";
+  ORDER.forEach((key, i) => {
+    const r = DATA[key];
+    const btn = document.createElement("button");
+    btn.className = "nav-item" + (key === state.current ? " active" : "");
+    btn.dataset.key = key;
+    btn.innerHTML = `
+      <span class="ico">${r.icon}</span>
+      <span class="meta">
+        <span class="name">${r.label}</span>
+        <span class="type">@type: ${r.type}</span>
+      </span>
+      <span class="num">${i + 1}</span>
+    `;
+    btn.onclick = () => select(key);
+    navEl.appendChild(btn);
+  });
+}
+
+function setActiveNav() {
+  document.querySelectorAll(".nav-item").forEach(el => {
+    el.classList.toggle("active", el.dataset.key === state.current);
+  });
+}
+
+/* ----- RENDER ----- */
+function select(key) {
+  if (!DATA[key]) return;
+  state.current = key;
+  setActiveNav();
+  const r = DATA[key];
+  titleEl.textContent = r.label;
+  urlEl.textContent = r.doc["@id"].replace(BASE, "/demo/");
+  renderObject(r);
+  renderSource(r.doc);
+}
+
+function renderObject(r) {
+  renderedEl.style.animation = "none";
+  void renderedEl.offsetWidth; // restart
+  renderedEl.style.animation = "";
+  const fn = renderers[r.id];
+  renderedEl.innerHTML = fn ? fn(r.doc) : `<pre>${JSON.stringify(r.doc, null, 2)}</pre>`;
+  // Wire up internal nav links (data-link attributes)
+  renderedEl.querySelectorAll("[data-link]").forEach(el => {
+    el.style.cursor = "pointer";
+    el.addEventListener("click", (e) => {
+      e.preventDefault();
+      select(el.dataset.link);
+    });
+  });
+}
+
+const renderers = {
+  profile(d) {
+    const initials = d.name.split(" ").map(s => s[0]).join("").slice(0, 2);
+    return `
+      <div class="profile-hero">
+        <div class="avatar">${initials}</div>
+        <div>
+          <h1>${escape(d.name)}</h1>
+          <div class="nick">@${d.nick}</div>
+          <p class="bio">${escape(d.bio)}</p>
+        </div>
+      </div>
+      <div class="profile-grid">
+        <div class="profile-section">
+          <h3>Contact</h3>
+          <a class="profile-link" href="${d.homepage}" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <span class="l">${d.homepage}</span>
+          </a>
+          <a class="profile-link" href="${d.mbox}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <span class="l">${d.mbox.replace("mailto:", "")}</span>
+          </a>
+          <a class="profile-link" data-link="notes">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span class="l">made: notes (foaf:made)</span>
+          </a>
+          <a class="profile-link" data-link="tasks">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <span class="l">currentProject: tasks</span>
+          </a>
+        </div>
+        <div class="profile-section">
+          <h3>Knows</h3>
+          <div class="knows-list">
+            ${d.knows.map(p => `
+              <div class="knows-chip" title="${p["@id"]}">
+                <span class="a">${p.name.split(" ").map(s=>s[0]).join("").slice(0,2)}</span>
+                <span>${escape(p.name)}</span>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  tasks(d) {
+    const totalCount = d.items.length;
+    const renderTasks = () => {
+      const done = d.items.filter(t => t.done).length;
+      const pct = Math.round((done / totalCount) * 100);
+      $("#progress-fill").style.width = pct + "%";
+      $("#progress-text").textContent = `${done}/${totalCount} · ${pct}%`;
+    };
+    setTimeout(() => {
+      // attach handlers after innerHTML lands
+      document.querySelectorAll(".task").forEach(el => {
+        el.addEventListener("click", () => {
+          const idx = +el.dataset.idx;
+          d.items[idx].done = !d.items[idx].done;
+          el.classList.toggle("done", d.items[idx].done);
+          renderTasks();
+          renderSource(d);
+        });
+      });
+      renderTasks();
+    }, 0);
+    const done = d.items.filter(t => t.done).length;
+    const pct = Math.round((done / totalCount) * 100);
+    return `
+      <div class="tasks-head">
+        <h1>${escape(d.title)}</h1>
+        <p class="desc">${escape(d.description)} <a data-link="profile" style="color:var(--accent-2);text-decoration:none">— by Ada</a></p>
+        <div class="progress">
+          <div class="progress-bar"><div id="progress-fill" style="width:${pct}%"></div></div>
+          <div class="progress-text" id="progress-text">${done}/${totalCount} · ${pct}%</div>
+        </div>
+      </div>
+      <div class="task-list">
+        ${d.items.map((t, i) => `
+          <div class="task ${t.done ? "done" : ""}" data-idx="${i}">
+            <span class="check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="label">${escape(t.label)}</span>
+            <span class="badge ${t.priority === "high" ? "high" : t.priority === "medium" ? "med" : "low"}">${t.priority}</span>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  },
+
+  notes(d) {
+    return `
+      <article class="note">
+        <h1>${escape(d.headline)}</h1>
+        <div class="meta">
+          <span><a data-link="profile" style="color:inherit;text-decoration:none">Ada Lovelace</a></span>
+          <span>·</span>
+          <span>${d.datePublished}</span>
+          <span>·</span>
+          <span>${Math.ceil(d.text.split(/\s+/).length / 200)} min read</span>
+        </div>
+        <div class="body">${md(d.text)}</div>
+        <div class="tags">
+          ${d.keywords.map(k => `<span class="tag">#${k}</span>`).join("")}
+        </div>
+      </article>
+    `;
+  },
+
+  playlist(d) {
+    const tracks = d.track;
+    setTimeout(() => {
+      let playingIdx = -1;
+      const all = document.querySelectorAll(".track");
+      const playBtn = $("#pl-play");
+      const playLabel = $("#pl-play-label");
+      const togglePlay = (idx) => {
+        if (playingIdx === idx) {
+          all[playingIdx].classList.remove("playing");
+          playingIdx = -1;
+          playLabel.textContent = "Play";
+        } else {
+          if (playingIdx >= 0) all[playingIdx].classList.remove("playing");
+          playingIdx = idx;
+          all[idx].classList.add("playing");
+          playLabel.textContent = "Pause";
+        }
+      };
+      all.forEach((el, i) => el.addEventListener("click", () => togglePlay(i)));
+      playBtn.addEventListener("click", () => togglePlay(playingIdx >= 0 ? playingIdx : 0));
+    }, 0);
+    return `
+      <div class="pl-head">
+        <div class="pl-cover">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </div>
+        <div class="pl-info">
+          <span class="label">Playlist · ${tracks.length} tracks</span>
+          <h1>${escape(d.name)}</h1>
+          <span class="creator">by <a data-link="profile" style="color:var(--accent-2);text-decoration:none">Ada Lovelace</a></span>
+          <div class="pl-controls">
+            <button class="pl-btn" id="pl-play">
+              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <span id="pl-play-label">Play</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="track-list">
+        ${tracks.map((t, i) => `
+          <div class="track" data-idx="${i}">
+            <span class="num">${i + 1}</span>
+            <span class="eq"><span></span><span></span><span></span></span>
+            <span class="ti">
+              <span class="t">${escape(t.name)}</span>
+              <span class="a">${escape(t.byArtist)}</span>
+            </span>
+            <span class="dur">${formatDur(t.duration)}</span>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  },
+
+  folder(d) {
+    const items = d.contains;
+    const totalSize = items.reduce((s, x) => s + (x.size || 0), 0);
+    return `
+      <div class="folder-head">
+        <div class="breadcrumb">
+          <span class="crumb">~</span>
+          <span class="sep">/</span>
+          <span class="crumb">projects</span>
+          <span class="sep">/</span>
+          <span class="crumb cur">linked-objects</span>
+        </div>
+        <div class="folder-stats">${items.length} items · ${formatSize(totalSize)}</div>
+      </div>
+      <div class="files">
+        ${items.map(it => {
+          const name = it["@id"].replace("./", "");
+          const isDir = it["@type"] === "BasicContainer";
+          const cls = isDir ? "dir" : iconClass(it.format);
+          const ico = isDir ? folderIcon() : fileIcon(it.format);
+          return `
+            <div class="file ${cls}" title="${name}">
+              <div class="fi">${ico}</div>
+              <div class="fn">${name}</div>
+              <div class="fs">${isDir ? "folder" : formatSize(it.size)}</div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+  }
+};
+
+/* ----- helpers ----- */
+function escape(s) {
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function md(text) {
+  // tiny inline markdown
+  let html = escape(text);
+  html = html.replace(/^## (.*)$/gm, "<h2>$1</h2>");
+  html = html.replace(/^### (.*)$/gm, "<h3>$1</h3>");
+  html = html.replace(/```([\s\S]*?)```/g, (_, c) => `<pre style="background:var(--bg-elev-2);padding:12px 14px;border-radius:8px;border:1px solid var(--line);overflow:auto;font-family:var(--mono);font-size:12.5px;line-height:1.55"><code>${c.trim()}</code></pre>`);
+  html = html.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  html = html.replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, t, u) => {
+    const inner = ORDER.find(k => u === DATA[k].doc["@id"]);
+    if (inner) return `<a data-link="${inner}" style="cursor:pointer">${t}</a>`;
+    return `<a href="${u}" target="_blank" rel="noopener">${t}</a>`;
+  });
+  html = html.split(/\n{2,}/).map(p => {
+    if (p.startsWith("<h") || p.startsWith("<pre")) return p;
+    return `<p>${p.replace(/\n/g, "<br>")}</p>`;
+  }).join("");
+  return html;
+}
+
+function formatDur(iso) {
+  const m = iso.match(/PT(?:(\d+)M)?(?:(\d+)S)?/);
+  const min = +(m[1] || 0), sec = +(m[2] || 0);
+  return `${min}:${String(sec).padStart(2,"0")}`;
+}
+function formatSize(b) {
+  if (b == null) return "";
+  if (b < 1024) return b + " B";
+  if (b < 1024 * 1024) return (b / 1024).toFixed(1) + " KB";
+  return (b / (1024 * 1024)).toFixed(2) + " MB";
+}
+function iconClass(format) {
+  if (!format) return "other";
+  if (format.startsWith("image/")) return "img";
+  if (format === "text/javascript" || format === "text/css" || format.includes("json")) return "code";
+  if (format === "text/markdown" || format === "text/plain") return "doc";
+  return "other";
+}
+function folderIcon() {
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
+}
+function fileIcon(format) {
+  if (format && format.startsWith("image/"))
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+  if (format === "text/javascript" || format === "text/css" || (format && format.includes("json")))
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>';
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+}
+
+/* ----- SOURCE ----- */
+function renderSource(doc) {
+  const json = JSON.stringify(doc, null, 2);
+  sourceEl.innerHTML = highlight(json);
+  sourceEl.querySelectorAll(".tok-link").forEach(el => {
+    el.addEventListener("click", () => {
+      const target = el.dataset.target;
+      if (target) select(target);
+    });
+  });
+}
+
+function highlight(json) {
+  // syntax-highlight with linkifying for known @id values
+  const knownIds = {};
+  ORDER.forEach(k => { knownIds[DATA[k].doc["@id"]] = k; });
+  return json
+    .replace(/(".*?")(\s*:)/g, '<span class="tok-key">$1</span>$2')
+    .replace(/: (".*?")/g, (m, s) => {
+      const raw = JSON.parse(s);
+      if (knownIds[raw]) {
+        return `: <span class="tok-link" data-target="${knownIds[raw]}">${escape(s)}</span>`;
+      }
+      // type values
+      if (raw.startsWith("Person") || raw.startsWith("Task") || raw.startsWith("Music") || raw.startsWith("Text") || raw.startsWith("Basic") || raw.endsWith("Container")) {
+        return `: <span class="tok-cls">${escape(s)}</span>`;
+      }
+      return `: <span class="tok-str">${escape(s)}</span>`;
+    })
+    .replace(/: (-?\d+\.?\d*)/g, ': <span class="tok-num">$1</span>')
+    .replace(/: (true|false)/g, ': <span class="tok-bool">$1</span>')
+    .replace(/: (null)/g, ': <span class="tok-null">$1</span>');
+}
+
+/* ----- HEADER controls ----- */
+$("#toggle-source").addEventListener("click", toggleSource);
+$("#toggle-theme").addEventListener("click", toggleTheme);
+$("#show-help").addEventListener("click", () => $("#modal-bg").classList.add("on"));
+$("#modal-bg").addEventListener("click", (e) => {
+  if (e.target.id === "modal-bg") $("#modal-bg").classList.remove("on");
+});
+$("#copy-source").addEventListener("click", async () => {
+  const txt = JSON.stringify(DATA[state.current].doc, null, 2);
+  try {
+    await navigator.clipboard.writeText(txt);
+    showToast("Copied JSON-LD to clipboard");
+  } catch {
+    showToast("Could not copy — select & copy manually");
+  }
+});
+
+function toggleSource() {
+  state.showSource = !state.showSource;
+  main.classList.toggle("no-source", !state.showSource);
+  $("#source-pane").style.display = state.showSource ? "" : "none";
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute("data-theme");
+  const next = cur === "light" ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem("lo-theme", next);
+  $("#theme-icon").innerHTML = next === "light"
+    ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
+    : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+}
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add("on");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.classList.remove("on"), 1800);
+}
+
+/* ----- KEYBOARD ----- */
+document.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+  if (e.key === "Escape") { $("#modal-bg").classList.remove("on"); return; }
+  if (e.key >= "1" && e.key <= "5") {
+    select(ORDER[+e.key - 1]);
+  } else if (e.key === "j" || e.key === "J") {
+    toggleSource();
+  } else if (e.key === "t" || e.key === "T") {
+    toggleTheme();
+  } else if (e.key === "c" || e.key === "C") {
+    $("#copy-source").click();
+  } else if (e.key === "?" || (e.shiftKey && e.key === "/")) {
+    $("#modal-bg").classList.toggle("on");
+  }
+});
+
+/* ----- INIT ----- */
+const savedTheme = localStorage.getItem("lo-theme");
+if (savedTheme) {
+  document.documentElement.setAttribute("data-theme", savedTheme);
+  if (savedTheme === "light") {
+    $("#theme-icon").innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+  }
+}
+
+buildNav();
+select("profile");
+
+// First-visit nudge
+setTimeout(() => {
+  if (!localStorage.getItem("lo-seen")) {
+    showToast("Tip: press 1–5 to switch resources, J to toggle source");
+    localStorage.setItem("lo-seen", "1");
+  }
+}, 800);
+</script>
+</body>
+</html>

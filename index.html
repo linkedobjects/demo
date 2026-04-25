@@ -15,6 +15,11 @@
     a.res .name { font-weight: 600; }
     a.res .type { color: #999; font-family: monospace; font-size: 13px; }
     a.res .desc { color: #666; margin-left: auto; font-size: 14px; }
+    a.cta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 24px 0 0; padding: 16px 18px; border-radius: 12px; text-decoration: none; color: #fff; background: linear-gradient(135deg, #7c5cff, #00d4ff); box-shadow: 0 8px 24px -8px rgba(124,92,255,.5); transition: transform 0.1s; }
+    a.cta:hover { transform: translateY(-1px); }
+    a.cta .name { font-weight: 600; }
+    a.cta .desc { color: rgba(255,255,255,.85); font-size: 14px; }
+    a.cta .arrow { font-size: 20px; opacity: .9; }
     footer { margin-top: 48px; color: #999; font-size: 13px; }
     footer a { color: #666; }
   </style>
@@ -29,6 +34,10 @@
     <li><a class="res" href="playlist/"><span class="name">playlist</span> <span class="type">Playlist</span> <span class="desc">audio queue</span></a></li>
     <li><a class="res" href="folder/"><span class="name">folder</span> <span class="type">ldp:Container</span> <span class="desc">a directory listing</span></a></li>
   </ul>
+  <a class="cta" href="explorer/">
+    <span><span class="name">Try the multi-pane explorer</span> <span class="desc">— browse all five resources side-by-side, with live JSON-LD source</span></span>
+    <span class="arrow">→</span>
+  </a>
   <footer>
     Source: <a href="https://github.com/linkedobjects/demo">github.com/linkedobjects/demo</a>
   </footer>
