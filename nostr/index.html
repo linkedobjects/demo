@@ -795,6 +795,25 @@ function fmtTime(unixSec) {
 }
 
 /* ============================================================
+ * Spam heuristics
+ * ============================================================ */
+function isSpam(ev, collected) {
+  const c = ev.content || "";
+  // too short
+  if (c.length < 8) return true;
+  // looks like an encrypted / base64 blob (no spaces, only base64 chars, long)
+  if (c.length > 80 && /^[A-Za-z0-9+/=]+$/.test(c.replace(/\s/g, "")) && (c.match(/\s/g) || []).length < 3) return true;
+  // long content with almost no whitespace — encoded payloads / data URIs
+  if (c.length > 200 && (c.match(/\s/g) || []).length < 5) return true;
+  // per-author flood throttle: cap at 3 events per author in a single feed load
+  let n = 0;
+  for (const e of collected.values()) {
+    if (e.pubkey === ev.pubkey && ++n >= 3) return true;
+  }
+  return false;
+}
+
+/* ============================================================
  * Pool
  * ============================================================ */
 const pool = new SimplePool();
@@ -1005,10 +1024,10 @@ function loadFeed(filter, opts = {}) {
   let renderTimeout;
   subscribe([filter], {
     onevent(ev) {
-      if (opts.spamFilter) {
-        if (!ev.content || ev.content.length < 8) return;
-      }
+      // defensive: relays should respect the kinds filter, but verify
+      if (filter.kinds && !filter.kinds.includes(ev.kind)) return;
       if (collected.has(ev.id)) return;
+      if (opts.spamFilter && isSpam(ev, collected)) return;
       collected.set(ev.id, ev);
       state.notes.set(ev.id, ev);
       count++;
@@ -1544,7 +1563,7 @@ function renderSettingsView() {
       </div>
     </div>
   `;
-  $$("[data-theme]").forEach(el => el.addEventListener("click", () => {
+  $$(".theme-row button[data-theme]").forEach(el => el.addEventListener("click", () => {
     document.documentElement.dataset.theme = el.dataset.theme;
     localStorage.setItem("ln-theme", el.dataset.theme);
     renderSettingsView();
