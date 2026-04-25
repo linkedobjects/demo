@@ -18,6 +18,7 @@
     a.cta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 24px 0 0; padding: 16px 18px; border-radius: 12px; text-decoration: none; color: #fff; background: linear-gradient(135deg, #7c5cff, #00d4ff); box-shadow: 0 8px 24px -8px rgba(124,92,255,.5); transition: transform 0.1s; }
     a.cta:hover { transform: translateY(-1px); }
     a.cta.alt { background: linear-gradient(135deg, #ff6ec7, #fbbf24); box-shadow: 0 8px 24px -8px rgba(255,110,199,.5); margin-top: 10px; }
+    a.cta.chat { background: linear-gradient(135deg, #0088cc, #56b8ed); box-shadow: 0 8px 24px -8px rgba(0,136,204,.5); margin-top: 10px; }
     a.cta .name { font-weight: 600; }
     a.cta .desc { color: rgba(255,255,255,.85); font-size: 14px; }
     a.cta .arrow { font-size: 20px; opacity: .9; }
@@ -38,6 +39,10 @@
   </ul>
   <a class="cta" href="hub/">
     <span><span class="cta-label">New</span><br><span class="name">Open the Hub</span> <span class="desc">— a full multi-app workspace: mail, calendar, contacts, files, notes, photos, and more, all linked.</span></span>
+    <span class="arrow">→</span>
+  </a>
+  <a class="cta chat" href="chat/">
+    <span><span class="name">Linked Chat</span> <span class="desc">— a JSON-LD-native messenger: DMs, groups, channels, replies, reactions, bot replies, theme switcher.</span></span>
     <span class="arrow">→</span>
   </a>
   <a class="cta alt" href="explorer/">
