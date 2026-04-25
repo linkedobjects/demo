@@ -1263,7 +1263,7 @@ const FILES = [
   { id: "f04", name: "demo.js",                parent: "linked",   format: "text/javascript",      size: 9216,    owner: "ada", date: "2026-04-23" },
   { id: "f05", name: "demo.css",               parent: "linked",   format: "text/css",             size: 6144,    owner: "ada", date: "2026-04-23" },
   { id: "f06", name: "on-loops.md",            parent: "essays",   format: "text/markdown",        size: 4280,    owner: "ada", date: "2026-04-19" },
-  { id: "f07", name: "trajectories.md",        parent: "essays",   format: "text/markdown",        size: 5680,    owner: "kat", date: "2026-04-15" },
+  { id: "f07", name: "trajectories.md",        parent: "essays",   format: "text/markdown",        size: 5680,    owner: "katherine", date: "2026-04-15" },
   { id: "f08", name: "compilers-talk.md",      parent: "essays",   format: "text/markdown",        size: 3120,    owner: "grace", date: "2026-04-10" },
   { id: "f09", name: "river-walk.jpg",         parent: "photos",   format: "image/jpeg",           size: 2456320, owner: "ada", date: "2026-04-20" },
   { id: "f10", name: "study-window.jpg",       parent: "photos",   format: "image/jpeg",           size: 1872640, owner: "ada", date: "2026-04-18" },
@@ -2410,13 +2410,14 @@ function wireCrossLinks(root) {
 /* ================================================================
  *  ACTIVITY FEED — generated from all entities
  * ================================================================ */
+function personName(id) { return person(id)?.name || "Someone"; }
 function activityFeed() {
   const items = [];
   MESSAGES.forEach(m => {
     items.push({
       ts: m.date,
       icon: ICON.mail,
-      html: `<span class="lo-link" data-link-person="${m.from}">${escape(person(m.from).name)}</span> sent <span class="lo-link" data-link-msg="${m.id}">"${escape(m.subject)}"</span>`,
+      html: `<span class="lo-link" data-link-person="${m.from}">${escape(personName(m.from))}</span> sent <span class="lo-link" data-link-msg="${m.id}">"${escape(m.subject)}"</span>`,
       day: dayLabel(m.date),
       timeText: relTime(m.date)
     });
@@ -2425,7 +2426,7 @@ function activityFeed() {
     items.push({
       ts: n.date + "T15:00",
       icon: ICON.notes,
-      html: `<span class="lo-link" data-link-person="${n.author}">${escape(person(n.author).name)}</span> wrote <span class="lo-link" data-link-note="${n.id}">"${escape(n.title)}"</span>`,
+      html: `<span class="lo-link" data-link-person="${n.author}">${escape(personName(n.author))}</span> wrote <span class="lo-link" data-link-note="${n.id}">"${escape(n.title)}"</span>`,
       day: dayLabel(n.date),
       timeText: relTime(n.date)
     });
@@ -2434,7 +2435,7 @@ function activityFeed() {
     items.push({
       ts: f.date + "T12:00",
       icon: fileIcon(f.format),
-      html: `<span class="lo-link" data-link-person="${f.owner}">${escape(person(f.owner).name)}</span> uploaded <span class="lo-link" data-link-file="${f.id}">${escape(f.name)}</span>`,
+      html: `<span class="lo-link" data-link-person="${f.owner}">${escape(personName(f.owner))}</span> uploaded <span class="lo-link" data-link-file="${f.id}">${escape(f.name)}</span>`,
       day: dayLabel(f.date),
       timeText: relTime(f.date)
     });
@@ -2443,7 +2444,7 @@ function activityFeed() {
     items.push({
       ts: e.date + "T08:00",
       icon: ICON.calendar,
-      html: `Event scheduled: <span class="lo-link" data-link-event="${e.id}">${escape(e.title)}</span> with ${e.attendees.map(a => `<span class="lo-link" data-link-person="${a}">${escape(person(a).name.split(" ")[0])}</span>`).join(", ")}`,
+      html: `Event scheduled: <span class="lo-link" data-link-event="${e.id}">${escape(e.title)}</span> with ${e.attendees.map(a => `<span class="lo-link" data-link-person="${a}">${escape(personName(a).split(" ")[0])}</span>`).join(", ")}`,
       day: dayLabel(e.date),
       timeText: relTime(e.date)
     });
