@@ -1,0 +1,2686 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Hub · Linked Objects</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%237c5cff' d='M10 13a5 5 0 0 1 0-7l3-3a5 5 0 0 1 7 7l-1.5 1.5M14 11a5 5 0 0 1 0 7l-3 3a5 5 0 0 1-7-7l1.5-1.5'/%3E%3C/svg%3E" />
+<style>
+:root {
+  --bg: #0b0d12;
+  --bg-elev: #11141b;
+  --bg-elev-2: #161a23;
+  --bg-elev-3: #1c2230;
+  --line: #232836;
+  --line-2: #2c3344;
+  --text: #e7ecf4;
+  --text-dim: #9aa4b8;
+  --text-faint: #5d6680;
+  --accent: #7c5cff;
+  --accent-2: #00d4ff;
+  --accent-soft: rgba(124, 92, 255, .15);
+  --good: #34d399;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --pink: #ff6ec7;
+  --shadow: 0 20px 50px -20px rgba(0,0,0,.6), 0 8px 16px -8px rgba(0,0,0,.4);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Inter", "Segoe UI", Roboto, sans-serif;
+  --easing: cubic-bezier(.2,.8,.2,1);
+}
+[data-theme="light"] {
+  --bg: #f6f7fb;
+  --bg-elev: #ffffff;
+  --bg-elev-2: #f0f2f8;
+  --bg-elev-3: #e8ecf4;
+  --line: #e3e6ef;
+  --line-2: #d3d7e2;
+  --text: #1a1f2e;
+  --text-dim: #5a6275;
+  --text-faint: #98a0b3;
+  --accent: #6b46e5;
+  --accent-2: #0099cc;
+  --accent-soft: rgba(107, 70, 229, .1);
+  --shadow: 0 10px 30px -12px rgba(20,30,60,.18), 0 4px 8px -4px rgba(20,30,60,.06);
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(900px 500px at 0% 0%, rgba(124,92,255,.18), transparent 60%),
+    radial-gradient(700px 400px at 100% 100%, rgba(0,212,255,.14), transparent 60%);
+  pointer-events: none; z-index: 0;
+}
+[data-theme="light"] body::before {
+  background:
+    radial-gradient(900px 500px at 0% 0%, rgba(107,70,229,.07), transparent 60%),
+    radial-gradient(700px 400px at 100% 100%, rgba(0,153,204,.05), transparent 60%);
+}
+
+/* SHELL */
+.shell {
+  position: relative; z-index: 1;
+  display: grid;
+  grid-template-columns: 64px 240px 1fr;
+  grid-template-rows: 52px 1fr;
+  height: 100vh;
+}
+
+/* TOPBAR */
+.topbar {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-elev);
+  padding: 0 16px 0 0;
+  z-index: 10;
+}
+.brand {
+  display: flex; align-items: center; justify-content: center;
+}
+.brand-mark {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border-radius: 9px;
+  box-shadow: 0 4px 14px rgba(124,92,255,.4);
+}
+.brand-mark svg { width: 18px; height: 18px; }
+.topbar-app-title {
+  display: flex; align-items: center; gap: 12px;
+  font-weight: 600; letter-spacing: -.01em;
+}
+.topbar-app-title .crumb { color: var(--text-faint); font-weight: 400; }
+.topbar-actions { display: flex; align-items: center; gap: 4px; }
+
+.search-trigger {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 14px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  cursor: pointer;
+  color: var(--text-faint);
+  font-family: inherit; font-size: 13px;
+  min-width: 280px;
+  transition: all .15s var(--easing);
+}
+.search-trigger:hover { border-color: var(--accent); color: var(--text-dim); }
+.search-trigger svg { width: 14px; height: 14px; }
+.search-trigger .spacer { flex: 1; }
+.kbd {
+  font-family: var(--mono); font-size: 11px;
+  padding: 2px 6px;
+  background: var(--bg-elev-3);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--text-faint);
+}
+
+.icon-btn {
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  background: transparent; border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all .15s var(--easing);
+  position: relative;
+}
+.icon-btn:hover {
+  background: var(--bg-elev-2);
+  color: var(--text);
+  border-color: var(--line);
+}
+.icon-btn svg { width: 16px; height: 16px; }
+.notif-dot {
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  border: 2px solid var(--bg-elev);
+}
+.avatar-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border: none;
+  color: white; font-weight: 600; font-size: 13px;
+  cursor: pointer;
+  margin-left: 6px;
+}
+
+/* APP RAIL */
+.rail {
+  border-right: 1px solid var(--line);
+  background: var(--bg-elev);
+  padding: 10px 0;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  overflow-y: auto;
+}
+.rail::-webkit-scrollbar { display: none; }
+.rail-item {
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  background: transparent; border: none;
+  border-radius: 11px;
+  color: var(--text-dim);
+  cursor: pointer;
+  position: relative;
+  transition: all .15s var(--easing);
+}
+.rail-item:hover { background: var(--bg-elev-2); color: var(--text); }
+.rail-item.active {
+  color: white;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 6px 16px rgba(124,92,255,.4);
+}
+.rail-item svg { width: 18px; height: 18px; }
+.rail-item .badge {
+  position: absolute; top: 4px; right: 4px;
+  background: var(--accent); color: white;
+  font-size: 10px; font-weight: 700;
+  padding: 1px 5px; border-radius: 100px;
+  border: 2px solid var(--bg-elev);
+}
+.rail-item.active .badge { background: white; color: var(--accent); border-color: transparent; }
+.rail-tip {
+  position: absolute; left: calc(100% + 8px); top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg-elev-3);
+  color: var(--text);
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0; pointer-events: none;
+  transition: opacity .15s var(--easing);
+  z-index: 50;
+  border: 1px solid var(--line);
+}
+.rail-item:hover .rail-tip { opacity: 1; }
+.rail-divider {
+  width: 24px; height: 1px;
+  background: var(--line);
+  margin: 4px 0;
+}
+
+/* SIDEBAR */
+.sidebar {
+  border-right: 1px solid var(--line);
+  background: var(--bg-elev);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.sidebar-head {
+  padding: 16px 18px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+.sidebar-head h2 {
+  margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -.01em;
+}
+.sidebar-body {
+  flex: 1; overflow-y: auto;
+  padding: 8px 0;
+}
+.sb-section { padding: 8px 0; }
+.sb-section + .sb-section { border-top: 1px solid var(--line); margin-top: 4px; }
+.sb-label {
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: var(--text-faint);
+  padding: 6px 18px;
+}
+.sb-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 18px;
+  background: transparent; border: none; text-align: left;
+  color: var(--text-dim);
+  cursor: pointer; font-family: inherit; font-size: 14px;
+  position: relative;
+  transition: all .12s var(--easing);
+  width: 100%;
+}
+.sb-item:hover { background: var(--bg-elev-2); color: var(--text); }
+.sb-item.active {
+  background: var(--accent-soft);
+  color: var(--text);
+  font-weight: 500;
+}
+.sb-item.active::before {
+  content: ""; position: absolute; left: 0; top: 6px; bottom: 6px;
+  width: 3px; background: var(--accent); border-radius: 0 3px 3px 0;
+}
+.sb-item svg { width: 14px; height: 14px; flex-shrink: 0; }
+.sb-item .count { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--text-faint); }
+
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white; border: none; border-radius: 8px;
+  font-family: inherit; font-weight: 500; font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(124,92,255,.35);
+  transition: transform .12s var(--easing);
+}
+.btn-primary:hover { transform: translateY(-1px); }
+.btn-primary svg { width: 12px; height: 12px; }
+
+.compose-btn {
+  margin: 14px 18px 4px;
+  padding: 9px 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white; border: none; border-radius: 9px;
+  font-family: inherit; font-weight: 500; font-size: 13px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 6px 14px rgba(124,92,255,.35);
+  transition: transform .12s var(--easing);
+}
+.compose-btn:hover { transform: translateY(-1px); }
+
+/* MAIN */
+.main {
+  overflow-y: auto;
+  position: relative;
+  display: flex; flex-direction: column;
+}
+.main-no-sidebar { grid-column: 2 / -1; }
+
+.content {
+  flex: 1; min-height: 0;
+  animation: fadeUp .3s var(--easing);
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* HOME / DASHBOARD */
+.home {
+  padding: 28px 32px;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+.greeting {
+  font-size: 32px; font-weight: 700; letter-spacing: -.02em;
+  margin: 0 0 4px;
+}
+.greeting span {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.subgreet { color: var(--text-dim); margin: 0 0 28px; }
+
+.widgets {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+}
+.widget {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+}
+.w-6 { grid-column: span 6; }
+.w-4 { grid-column: span 4; }
+.w-8 { grid-column: span 8; }
+.w-12 { grid-column: span 12; }
+.widget h3 {
+  margin: 0 0 14px;
+  font-size: 13px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-faint);
+  display: flex; align-items: center; gap: 8px;
+}
+.widget h3 svg { width: 13px; height: 13px; }
+.widget h3 .more {
+  margin-left: auto;
+  color: var(--accent);
+  font-weight: 500; text-transform: none; letter-spacing: 0;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.widget h3 .more:hover { text-decoration: underline; }
+
+.weather {
+  display: flex; align-items: center; gap: 16px;
+}
+.weather .temp { font-size: 42px; font-weight: 600; letter-spacing: -.03em; }
+.weather .info { color: var(--text-dim); }
+.weather .info .place { color: var(--text); font-weight: 500; }
+.weather .icon {
+  font-size: 36px;
+  background: linear-gradient(135deg, #ffb84d, #ff6ec7);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+.stat-row {
+  display: flex; gap: 24px; flex-wrap: wrap;
+}
+.stat {
+  flex: 1; min-width: 100px;
+}
+.stat .n { font-size: 24px; font-weight: 600; letter-spacing: -.02em; }
+.stat .l { color: var(--text-faint); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+
+.activity-feed { display: flex; flex-direction: column; gap: 4px; }
+.feed-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 0;
+}
+.feed-item + .feed-item { border-top: 1px solid var(--line); }
+.feed-icon {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border-radius: 9px;
+  background: var(--bg-elev-2);
+  flex-shrink: 0;
+}
+.feed-icon svg { width: 14px; height: 14px; }
+.feed-content { flex: 1; font-size: 14px; }
+.feed-content .who { font-weight: 500; }
+.feed-content .lo-link { color: var(--accent-2); cursor: pointer; }
+.feed-content .lo-link:hover { text-decoration: underline; }
+.feed-time { color: var(--text-faint); font-size: 12px; margin-left: 12px; flex-shrink: 0; }
+
+.agenda-list { display: flex; flex-direction: column; gap: 6px; }
+.agenda-item {
+  display: flex; gap: 14px; align-items: center;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .12s var(--easing);
+}
+.agenda-item:hover { background: var(--bg-elev-2); }
+.agenda-time {
+  font-family: var(--mono); font-size: 12px;
+  color: var(--text-dim);
+  width: 60px;
+  text-align: right;
+}
+.agenda-bar {
+  width: 3px; align-self: stretch;
+  background: var(--accent); border-radius: 2px;
+}
+.agenda-title { font-weight: 500; }
+.agenda-meta { color: var(--text-dim); font-size: 12px; }
+
+.q-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;
+}
+.q-card {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 16px 10px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center; font-size: 13px;
+  transition: all .15s var(--easing);
+}
+.q-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+.q-card .ico {
+  width: 38px; height: 38px;
+  display: grid; place-items: center;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white;
+}
+.q-card .ico svg { width: 18px; height: 18px; }
+
+/* FILES APP */
+.files-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.breadcrumb { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 13px; }
+.breadcrumb .crumb { color: var(--text-dim); cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+.breadcrumb .crumb:hover { background: var(--bg-elev-2); color: var(--text); }
+.breadcrumb .crumb.cur { color: var(--text); font-weight: 500; }
+.breadcrumb .sep { color: var(--text-faint); }
+.toolbar-actions { display: flex; gap: 6px; }
+.files-grid {
+  padding: 20px 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+.file-card {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 18px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: all .15s var(--easing);
+  position: relative;
+}
+.file-card:hover {
+  background: var(--bg-elev-2);
+  transform: translateY(-2px);
+}
+.file-card .fi {
+  width: 52px; height: 52px;
+  display: grid; place-items: center;
+  border-radius: 11px;
+}
+.file-card.dir .fi { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; }
+.file-card.doc .fi { background: rgba(0,212,255,.15); color: var(--accent-2); }
+.file-card.img .fi { background: rgba(52,211,153,.15); color: var(--good); }
+.file-card.code .fi { background: rgba(251,191,36,.15); color: var(--warn); }
+.file-card.audio .fi { background: rgba(255,110,199,.15); color: var(--pink); }
+.file-card.other .fi { background: var(--bg-elev-2); color: var(--text-dim); }
+.file-card .fi svg { width: 24px; height: 24px; }
+.file-card .fn { font-size: 13px; word-break: break-all; line-height: 1.3; }
+.file-card .fs { font-size: 11px; color: var(--text-faint); font-family: var(--mono); }
+
+/* MAIL APP */
+.mail-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 380px) 1fr;
+  height: 100%;
+  overflow: hidden;
+}
+.mail-list {
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+}
+.mail-list-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.mail-list-head .title { font-weight: 600; }
+.mail-list-head .count { color: var(--text-faint); font-size: 12px; font-family: var(--mono); }
+.mail-item {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: background .12s var(--easing);
+}
+.mail-item:hover { background: var(--bg-elev-2); }
+.mail-item.active { background: var(--accent-soft); }
+.mail-item.active::before {
+  content: ""; position: absolute; left: 0;
+  width: 3px; height: calc(100% - 16px);
+  margin-top: -8px;
+  background: var(--accent);
+}
+.mail-item.unread .from { font-weight: 600; }
+.mail-item.unread .subject { font-weight: 500; }
+.mail-item .row1 { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.mail-item .from { flex: 1; font-size: 14px; }
+.mail-item .when { font-size: 12px; color: var(--text-faint); }
+.mail-item .subject { font-size: 13px; margin-bottom: 4px; }
+.mail-item .preview { font-size: 12px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mail-reader {
+  overflow-y: auto;
+  padding: 28px 32px;
+}
+.mail-reader h1 { margin: 0 0 16px; font-size: 22px; letter-spacing: -.01em; }
+.mail-meta {
+  display: flex; gap: 14px; align-items: center;
+  padding: 14px 0; margin-bottom: 20px;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+}
+.mail-meta .avatar-sm {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: white; font-weight: 600; font-size: 13px;
+  cursor: pointer;
+}
+.mail-meta .from-info { flex: 1; }
+.mail-meta .from-info .n {
+  font-weight: 500; cursor: pointer;
+}
+.mail-meta .from-info .n:hover { color: var(--accent); }
+.mail-meta .from-info .e { color: var(--text-dim); font-size: 12px; font-family: var(--mono); }
+.mail-meta .when { color: var(--text-faint); font-size: 12px; }
+.mail-body { line-height: 1.65; max-width: 70ch; color: var(--text); }
+.mail-body p { margin: 0 0 14px; }
+.mail-attachments {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.mail-attach {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all .12s var(--easing);
+}
+.mail-attach:hover { border-color: var(--accent); }
+.mail-attach .fi {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  display: grid; place-items: center;
+  background: rgba(0,212,255,.15); color: var(--accent-2);
+}
+.mail-attach .fi svg { width: 13px; height: 13px; }
+
+.empty-state {
+  display: grid; place-items: center; height: 100%;
+  color: var(--text-faint); text-align: center; padding: 40px;
+}
+.empty-state svg { width: 56px; height: 56px; margin-bottom: 14px; opacity: .4; }
+
+/* CALENDAR */
+.cal-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.cal-title { font-size: 18px; font-weight: 600; letter-spacing: -.01em; }
+.cal-nav { display: flex; gap: 4px; }
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: var(--line);
+  gap: 1px;
+  flex: 1;
+}
+.cal-dow {
+  background: var(--bg-elev);
+  padding: 8px 12px;
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-faint);
+}
+.cal-day {
+  background: var(--bg-elev);
+  padding: 8px;
+  min-height: 96px;
+  cursor: pointer;
+  display: flex; flex-direction: column; gap: 4px;
+  position: relative;
+  transition: background .12s var(--easing);
+}
+.cal-day:hover { background: var(--bg-elev-2); }
+.cal-day.other { background: var(--bg); color: var(--text-faint); }
+.cal-day.today .num {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-weight: 600;
+}
+.cal-day .num { font-size: 13px; font-weight: 500; }
+.cal-event {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--text);
+  cursor: pointer;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  border-left: 2px solid var(--accent);
+}
+.cal-event.alt { border-left-color: var(--accent-2); background: rgba(0,212,255,.12); }
+.cal-event.alt2 { border-left-color: var(--good); background: rgba(52,211,153,.12); }
+
+/* CONTACTS */
+.contacts-grid {
+  padding: 20px 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.contact-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  cursor: pointer;
+  transition: all .15s var(--easing);
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;
+}
+.contact-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+}
+.contact-card .ava {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: white; font-weight: 600; font-size: 18px;
+  margin-bottom: 4px;
+}
+.contact-card .name { font-weight: 600; font-size: 15px; }
+.contact-card .role { font-size: 12px; color: var(--text-dim); }
+.contact-card .tags { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+.tag-pill {
+  font-size: 10px;
+  padding: 2px 7px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 100px;
+  font-family: var(--mono);
+}
+
+.contact-detail { padding: 28px 32px; }
+.contact-detail .hero { display: flex; gap: 24px; align-items: center; padding-bottom: 22px; border-bottom: 1px solid var(--line); margin-bottom: 22px; }
+.contact-detail .ava-lg {
+  width: 96px; height: 96px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: white; font-weight: 600; font-size: 32px;
+}
+.contact-detail h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: -.02em; }
+.contact-detail .role { color: var(--text-dim); margin: 0 0 8px; }
+.contact-detail .bio { color: var(--text-dim); }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.detail-section h3 {
+  margin: 0 0 10px; font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint);
+}
+.detail-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 0;
+  font-size: 14px;
+}
+.detail-row svg { width: 14px; height: 14px; color: var(--text-faint); }
+.detail-row .v { color: var(--text-dim); font-family: var(--mono); font-size: 13px; }
+.linked-list { display: flex; flex-direction: column; gap: 4px; }
+.linked-row {
+  display: flex; gap: 10px; padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  align-items: center;
+  font-size: 13px;
+  transition: background .12s var(--easing);
+}
+.linked-row:hover { background: var(--bg-elev-2); }
+.linked-row .ico {
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  border-radius: 7px;
+  background: var(--bg-elev-2);
+  color: var(--text-dim);
+}
+.linked-row .ico svg { width: 12px; height: 12px; }
+
+/* NOTES */
+.notes-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  height: 100%;
+}
+.notes-list {
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+}
+.note-item {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: background .12s var(--easing);
+}
+.note-item:hover { background: var(--bg-elev-2); }
+.note-item.active { background: var(--accent-soft); }
+.note-item .nt { font-weight: 500; margin-bottom: 4px; font-size: 14px; }
+.note-item .np { font-size: 12px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.note-item .nm { display: flex; gap: 8px; margin-top: 6px; font-size: 11px; color: var(--text-faint); }
+.note-reader { padding: 36px 44px; overflow-y: auto; max-width: 760px; }
+.note-reader h1 { margin: 0 0 12px; font-size: 28px; letter-spacing: -.02em; }
+.note-reader .meta {
+  color: var(--text-dim); font-size: 13px;
+  display: flex; gap: 14px; padding-bottom: 18px; border-bottom: 1px solid var(--line); margin-bottom: 22px;
+}
+.note-reader .body { line-height: 1.75; }
+.note-reader .body h2 { margin: 28px 0 10px; font-size: 20px; }
+.note-reader .body h3 { margin: 22px 0 8px; font-size: 16px; color: var(--text-dim); }
+.note-reader .body p { margin: 12px 0; }
+.note-reader .body code { font-family: var(--mono); font-size: 13px; background: var(--bg-elev-2); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--line); }
+.note-reader .body pre { background: var(--bg-elev-2); padding: 14px 16px; border-radius: 10px; border: 1px solid var(--line); overflow: auto; font-family: var(--mono); font-size: 13px; line-height: 1.55; }
+.note-reader .body a { color: var(--accent-2); }
+.note-reader .body ul { margin: 12px 0; padding-left: 22px; }
+.note-reader .body blockquote { border-left: 3px solid var(--accent); padding: 4px 0 4px 16px; color: var(--text-dim); margin: 14px 0; }
+.note-reader .tags { display: flex; gap: 6px; margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--line); }
+
+/* TASKS */
+.tasks-layout { padding: 24px 32px; max-width: 800px; margin: 0 auto; width: 100%; }
+.tlist-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 16px;
+}
+.tlist-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.tlist-head h2 { margin: 0; font-size: 18px; letter-spacing: -.01em; }
+.tlist-head .progress-mini {
+  font-family: var(--mono); font-size: 12px; color: var(--text-faint);
+  background: var(--bg-elev-2); padding: 3px 10px; border-radius: 100px;
+}
+.task-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .12s var(--easing);
+}
+.task-row:hover { background: var(--bg-elev-2); }
+.task-row .check {
+  width: 18px; height: 18px;
+  border: 2px solid var(--text-faint);
+  border-radius: 5px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  transition: all .15s var(--easing);
+}
+.task-row.done .check { background: var(--accent); border-color: var(--accent); }
+.task-row .check svg { width: 11px; height: 11px; color: white; opacity: 0; transform: scale(.5); transition: all .15s var(--easing); }
+.task-row.done .check svg { opacity: 1; transform: scale(1); }
+.task-row .lbl { flex: 1; font-size: 14px; }
+.task-row.done .lbl { color: var(--text-faint); text-decoration: line-through; }
+.task-row .due { font-size: 11px; color: var(--text-faint); font-family: var(--mono); }
+
+/* PHOTOS */
+.photos-grid {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 6px;
+}
+.photo {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform .15s var(--easing);
+}
+.photo:hover { transform: scale(1.02); }
+.photo .fade {
+  position: absolute; inset: auto 0 0 0;
+  height: 40%;
+  background: linear-gradient(to top, rgba(0,0,0,.6), transparent);
+  opacity: 0;
+  transition: opacity .15s var(--easing);
+  display: flex; align-items: flex-end;
+  padding: 8px 10px;
+  color: white; font-size: 12px; font-weight: 500;
+}
+.photo:hover .fade { opacity: 1; }
+
+/* PHOTO LIGHTBOX */
+.lightbox {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.85); backdrop-filter: blur(8px);
+  z-index: 200;
+  display: none;
+  align-items: center; justify-content: center;
+  animation: fadeIn .2s ease;
+}
+.lightbox.on { display: flex; }
+.lightbox .lb-content {
+  width: min(90vw, 1000px);
+  max-height: 90vh;
+  background: var(--bg-elev);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  border: 1px solid var(--line);
+}
+.lightbox .lb-img {
+  flex: 1;
+  min-height: 480px;
+  display: grid; place-items: center;
+}
+.lightbox .lb-info {
+  width: 280px;
+  border-left: 1px solid var(--line);
+  padding: 22px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.lightbox .lb-info h2 { margin: 0 0 4px; font-size: 18px; }
+.lightbox .lb-info .meta { color: var(--text-dim); font-size: 13px; }
+.lightbox-close {
+  position: absolute; top: 20px; right: 20px;
+  background: rgba(255,255,255,.1); border: none; color: white;
+  width: 36px; height: 36px; border-radius: 50%;
+  cursor: pointer;
+  display: grid; place-items: center;
+}
+.lightbox-close:hover { background: rgba(255,255,255,.2); }
+
+/* MUSIC */
+.music-page { padding: 28px 32px; }
+.pl-hero {
+  display: flex; gap: 24px; margin-bottom: 28px;
+  padding-bottom: 24px; border-bottom: 1px solid var(--line);
+}
+.pl-hero .cover {
+  width: 160px; height: 160px;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,.3), transparent 50%),
+    linear-gradient(135deg, var(--accent), var(--accent-2), var(--pink));
+  display: grid; place-items: center;
+  box-shadow: 0 16px 40px rgba(124,92,255,.45);
+}
+.pl-hero .cover svg { width: 56px; height: 56px; color: rgba(255,255,255,.9); }
+.pl-hero .info { display: flex; flex-direction: column; justify-content: center; }
+.pl-hero .info .lbl { color: var(--text-faint); font-size: 11px; text-transform: uppercase; letter-spacing: .1em; }
+.pl-hero .info h1 { margin: 4px 0 8px; font-size: 32px; letter-spacing: -.02em; }
+.pl-hero .info .creator { color: var(--text-dim); margin-bottom: 14px; }
+.pl-hero .controls { display: flex; gap: 8px; }
+.track-row {
+  display: grid;
+  grid-template-columns: 32px 1fr 1fr auto;
+  align-items: center; gap: 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .12s var(--easing);
+}
+.track-row:hover { background: var(--bg-elev-2); }
+.track-row .num { color: var(--text-faint); font-family: var(--mono); font-size: 12px; text-align: center; }
+.track-row.playing .num { display: none; }
+.track-row .eq { display: none; align-items: end; gap: 2px; height: 14px; justify-content: center; }
+.track-row.playing .eq { display: flex; }
+.track-row .eq span { width: 3px; background: var(--accent); animation: bounce 1s infinite var(--easing); }
+.track-row .eq span:nth-child(2) { animation-delay: .15s; }
+.track-row .eq span:nth-child(3) { animation-delay: .3s; }
+@keyframes bounce { 0%,100% { height: 4px; } 50% { height: 14px; } }
+.track-row .t { font-weight: 500; }
+.track-row.playing .t { color: var(--accent); }
+.track-row .a { color: var(--text-dim); font-size: 13px; }
+.track-row .d { color: var(--text-faint); font-family: var(--mono); font-size: 12px; }
+
+/* ACTIVITY */
+.activity-page { padding: 28px 32px; max-width: 800px; margin: 0 auto; width: 100%; }
+.activity-page h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: -.02em; }
+.activity-page .lede { color: var(--text-dim); margin: 0 0 28px; }
+.activity-day { margin-bottom: 32px; }
+.activity-day .dlabel {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--text-faint); font-weight: 600; margin-bottom: 8px;
+}
+.activity-stream { position: relative; padding-left: 32px; }
+.activity-stream::before {
+  content: ""; position: absolute; left: 15px; top: 14px; bottom: 14px; width: 2px;
+  background: var(--line);
+}
+.act-item {
+  position: relative;
+  padding: 12px 0;
+  display: flex; gap: 14px;
+}
+.act-icon {
+  position: absolute; left: -32px;
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  background: var(--bg-elev);
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  color: var(--text-dim);
+}
+.act-icon svg { width: 13px; height: 13px; }
+.act-body { font-size: 14px; flex: 1; }
+.act-body .who { font-weight: 500; }
+.act-body .lo-link { color: var(--accent-2); cursor: pointer; }
+.act-body .when { display: block; color: var(--text-faint); font-size: 12px; margin-top: 3px; }
+
+/* SETTINGS */
+.settings-page { padding: 28px 32px; max-width: 720px; margin: 0 auto; width: 100%; }
+.settings-page h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: -.02em; }
+.set-section {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 6px 0;
+  margin-bottom: 16px;
+}
+.set-section h2 {
+  margin: 0; padding: 16px 22px 10px;
+  font-size: 13px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-faint);
+  border-bottom: 1px solid var(--line);
+}
+.set-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 22px;
+}
+.set-row + .set-row { border-top: 1px solid var(--line); }
+.set-row .lbl { font-size: 14px; }
+.set-row .desc { color: var(--text-dim); font-size: 12px; margin-top: 2px; }
+.toggle {
+  width: 40px; height: 22px;
+  background: var(--bg-elev-3);
+  border-radius: 100px;
+  border: 1px solid var(--line);
+  position: relative;
+  cursor: pointer;
+  transition: background .2s var(--easing);
+}
+.toggle.on { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-color: transparent; }
+.toggle .knob {
+  position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  background: white;
+  border-radius: 50%;
+  transition: left .2s var(--easing);
+  box-shadow: 0 2px 4px rgba(0,0,0,.2);
+}
+.toggle.on .knob { left: 20px; }
+
+/* SPOTLIGHT */
+.spot-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(6px);
+  display: none;
+  z-index: 300;
+  animation: fadeIn .15s ease;
+  padding-top: 14vh;
+  justify-content: center;
+}
+.spot-bg.on { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.spot {
+  width: min(640px, 92vw);
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.5);
+  overflow: hidden;
+  height: fit-content;
+  max-height: 70vh;
+  display: flex; flex-direction: column;
+}
+.spot-input-wrap {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.spot-input-wrap svg { width: 16px; height: 16px; color: var(--text-faint); }
+.spot-input {
+  flex: 1;
+  background: transparent; border: none; outline: none;
+  color: var(--text);
+  font-family: inherit; font-size: 16px;
+}
+.spot-input::placeholder { color: var(--text-faint); }
+.spot-results { flex: 1; overflow-y: auto; padding: 8px; }
+.spot-group { margin-bottom: 8px; }
+.spot-group .h {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--text-faint); padding: 8px 12px 4px;
+}
+.spot-r {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background .1s ease;
+}
+.spot-r:hover, .spot-r.sel { background: var(--accent-soft); }
+.spot-r .ico {
+  width: 28px; height: 28px;
+  display: grid; place-items: center;
+  border-radius: 7px;
+  background: var(--bg-elev-2);
+  color: var(--text-dim); flex-shrink: 0;
+}
+.spot-r .ico svg { width: 14px; height: 14px; }
+.spot-r .meta { flex: 1; min-width: 0; }
+.spot-r .meta .t { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spot-r .meta .s { font-size: 12px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spot-r .type { font-size: 11px; color: var(--text-faint); font-family: var(--mono); }
+.spot-empty { padding: 30px; text-align: center; color: var(--text-faint); font-size: 13px; }
+.spot-foot {
+  padding: 8px 16px;
+  border-top: 1px solid var(--line);
+  font-size: 11px; color: var(--text-faint);
+  display: flex; gap: 14px; justify-content: flex-end;
+}
+.spot-foot span { display: flex; align-items: center; gap: 4px; }
+
+/* NOTIF DROPDOWN */
+.notif-pop {
+  position: absolute;
+  top: 50px; right: 60px;
+  width: 360px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.4);
+  display: none;
+  z-index: 100;
+  overflow: hidden;
+  animation: fadeUp .15s var(--easing);
+}
+.notif-pop.on { display: block; }
+.notif-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  font-weight: 600;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.notif-head .clear { color: var(--accent); font-size: 12px; cursor: pointer; }
+.notif-list { max-height: 400px; overflow-y: auto; }
+.notif-item {
+  display: flex; gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: background .1s ease;
+}
+.notif-item:hover { background: var(--bg-elev-2); }
+.notif-item .ico {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border-radius: 9px;
+  background: var(--bg-elev-2);
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+.notif-item .ico svg { width: 14px; height: 14px; }
+.notif-item .body { flex: 1; font-size: 13px; }
+.notif-item .when { color: var(--text-faint); font-size: 11px; margin-top: 4px; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--bg-elev); border: 1px solid var(--line);
+  color: var(--text);
+  padding: 10px 16px; border-radius: 100px;
+  font-size: 13px;
+  box-shadow: var(--shadow);
+  opacity: 0; pointer-events: none;
+  transition: all .25s var(--easing);
+  z-index: 400;
+}
+.toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* AVATAR HELPERS */
+.av-c0 { background: linear-gradient(135deg, #7c5cff, #00d4ff); }
+.av-c1 { background: linear-gradient(135deg, #ff6ec7, #ffb84d); }
+.av-c2 { background: linear-gradient(135deg, #34d399, #00d4ff); }
+.av-c3 { background: linear-gradient(135deg, #fbbf24, #f87171); }
+.av-c4 { background: linear-gradient(135deg, #f87171, #ff6ec7); }
+.av-c5 { background: linear-gradient(135deg, #06b6d4, #7c5cff); }
+.av-c6 { background: linear-gradient(135deg, #84cc16, #fbbf24); }
+.av-c7 { background: linear-gradient(135deg, #a855f7, #ec4899); }
+
+/* SCROLLBARS */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 100px; border: 2px solid var(--bg-elev); }
+::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+
+/* RESPONSIVE */
+@media (max-width: 980px) {
+  .shell { grid-template-columns: 56px 0px 1fr; }
+  .sidebar { display: none; }
+  .main, .main-no-sidebar { grid-column: 2 / -1; }
+  .search-trigger { min-width: 0; padding: 7px 10px; }
+  .search-trigger .label { display: none; }
+  .mail-layout { grid-template-columns: 1fr; }
+  .notes-layout { grid-template-columns: 1fr; }
+  .detail-grid { grid-template-columns: 1fr; }
+  .widget.w-6, .widget.w-4, .widget.w-8 { grid-column: span 12; }
+}
+</style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <a href="../" class="brand-mark" title="Back to demo pod" style="text-decoration:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.4" stroke-linecap="round">
+            <path d="M10 13a5 5 0 0 1 0-7l3-3a5 5 0 0 1 7 7l-1.5 1.5"/>
+            <path d="M14 11a5 5 0 0 1 0 7l-3 3a5 5 0 0 1-7-7l1.5-1.5"/>
+          </svg>
+        </a>
+      </div>
+      <div class="topbar-app-title" id="topbar-title"></div>
+      <div class="topbar-actions">
+        <button class="search-trigger" id="search-trigger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <span class="label">Search anything</span>
+          <span class="spacer"></span>
+          <span class="kbd">⌘K</span>
+        </button>
+        <button class="icon-btn" id="notif-btn" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <span class="notif-dot"></span>
+        </button>
+        <button class="icon-btn" id="theme-btn" title="Toggle theme (T)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="theme-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="avatar-btn av-c0" title="Ada Lovelace">AL</button>
+      </div>
+    </header>
+
+    <nav class="rail" id="rail"></nav>
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="main" id="main"></main>
+  </div>
+
+  <!-- Notifications dropdown -->
+  <div class="notif-pop" id="notif-pop">
+    <div class="notif-head">
+      <span>Notifications</span>
+      <span class="clear">Mark all read</span>
+    </div>
+    <div class="notif-list" id="notif-list"></div>
+  </div>
+
+  <!-- Spotlight search -->
+  <div class="spot-bg" id="spot-bg">
+    <div class="spot" onclick="event.stopPropagation()">
+      <div class="spot-input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input class="spot-input" id="spot-input" placeholder="Search across all your linked objects…" autocomplete="off" />
+        <span class="kbd">esc</span>
+      </div>
+      <div class="spot-results" id="spot-results"></div>
+      <div class="spot-foot">
+        <span><span class="kbd">↑↓</span> navigate</span>
+        <span><span class="kbd">↵</span> open</span>
+        <span><span class="kbd">esc</span> close</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Photo lightbox -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lb-close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="lb-content" id="lb-content"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+/* ================================================================
+ *  DATA — a small, richly cross-linked dataset
+ * ================================================================ */
+const PEOPLE = [
+  { id: "ada",     name: "Ada Lovelace",     nick: "ada",     role: "Mathematician",     bio: "Translator. Programmer of an analytical engine that has never been built.", email: "ada@example.org",     phone: "+44 20 1234 5678", color: 0, tags: ["maths", "music"] },
+  { id: "charles", name: "Charles Babbage",  nick: "charles", role: "Engineer",          bio: "Designer of difference engines. Stubborn about gears.",                       email: "charles@example.org", phone: "+44 20 2345 6789", color: 1, tags: ["maths"]   },
+  { id: "mary",    name: "Mary Somerville",  nick: "mary",    role: "Polymath",          bio: "Astronomer, mathematician, science writer.",                                  email: "mary@example.org",    phone: "+44 13 1234 5678", color: 2, tags: ["physics", "maths"] },
+  { id: "alan",    name: "Alan Turing",      nick: "alan",    role: "Computer Scientist",bio: "On the limits of computation, and on cycling.",                               email: "alan@example.org",    phone: "+44 16 1234 5678", color: 3, tags: ["computing"] },
+  { id: "grace",   name: "Grace Hopper",     nick: "grace",   role: "Navy / Compilers",  bio: "Compiler pioneer. Coined a unit of nanoseconds you can hold in your hand.",   email: "grace@example.org",   phone: "+1 757 555 0142", color: 4, tags: ["computing"] },
+  { id: "katherine", name: "Katherine Johnson", nick: "kat", role: "NASA mathematician", bio: "Trajectories. Trust your calculations.",                                       email: "kat@example.org",     phone: "+1 757 555 0188", color: 5, tags: ["physics"] },
+  { id: "marie",   name: "Marie Curie",      nick: "marie",   role: "Physicist / Chemist", bio: "Two Nobel prizes, two elements, one stubborn lab.",                          email: "marie@example.org",   phone: "+33 1 4234 5678", color: 6, tags: ["physics", "chemistry"] },
+  { id: "edsger",  name: "Edsger Dijkstra",  nick: "edsger",  role: "Computer Scientist",bio: "Goto considered harmful. Beauty considered necessary.",                       email: "edsger@example.org",  phone: "+31 20 555 0107", color: 7, tags: ["computing"] }
+];
+
+const FOLDERS = [
+  { id: "root",      name: "/",                parent: null,       size: null },
+  { id: "projects",  name: "projects",         parent: "root",     size: null },
+  { id: "linked",    name: "linked-objects",   parent: "projects", size: null },
+  { id: "essays",    name: "essays",           parent: "root",     size: null },
+  { id: "photos",    name: "photos",           parent: "root",     size: null },
+  { id: "shared",    name: "shared",           parent: "root",     size: null }
+];
+
+const FILES = [
+  { id: "f01", name: "memex-sketch.png",       parent: "linked",   format: "image/png",            size: 184320,  owner: "ada", date: "2026-04-22" },
+  { id: "f02", name: "manifest.jsonld",        parent: "linked",   format: "application/ld+json",  size: 1180,    owner: "ada", date: "2026-04-21" },
+  { id: "f03", name: "README.md",              parent: "linked",   format: "text/markdown",        size: 2840,    owner: "ada", date: "2026-04-19" },
+  { id: "f04", name: "demo.js",                parent: "linked",   format: "text/javascript",      size: 9216,    owner: "ada", date: "2026-04-23" },
+  { id: "f05", name: "demo.css",               parent: "linked",   format: "text/css",             size: 6144,    owner: "ada", date: "2026-04-23" },
+  { id: "f06", name: "on-loops.md",            parent: "essays",   format: "text/markdown",        size: 4280,    owner: "ada", date: "2026-04-19" },
+  { id: "f07", name: "trajectories.md",        parent: "essays",   format: "text/markdown",        size: 5680,    owner: "kat", date: "2026-04-15" },
+  { id: "f08", name: "compilers-talk.md",      parent: "essays",   format: "text/markdown",        size: 3120,    owner: "grace", date: "2026-04-10" },
+  { id: "f09", name: "river-walk.jpg",         parent: "photos",   format: "image/jpeg",           size: 2456320, owner: "ada", date: "2026-04-20" },
+  { id: "f10", name: "study-window.jpg",       parent: "photos",   format: "image/jpeg",           size: 1872640, owner: "ada", date: "2026-04-18" },
+  { id: "f11", name: "first-snow.jpg",         parent: "photos",   format: "image/jpeg",           size: 2228520, owner: "mary", date: "2026-04-12" },
+  { id: "f12", name: "blackboard.jpg",         parent: "photos",   format: "image/jpeg",           size: 1965120, owner: "alan", date: "2026-04-08" },
+  { id: "f13", name: "pier.jpg",               parent: "photos",   format: "image/jpeg",           size: 2568900, owner: "grace", date: "2026-04-05" },
+  { id: "f14", name: "lighthouse.jpg",         parent: "photos",   format: "image/jpeg",           size: 2092800, owner: "katherine", date: "2026-04-02" },
+  { id: "f15", name: "lab-notes.jpg",          parent: "photos",   format: "image/jpeg",           size: 1740300, owner: "marie", date: "2026-03-28" },
+  { id: "f16", name: "garden-path.jpg",        parent: "photos",   format: "image/jpeg",           size: 2364810, owner: "edsger", date: "2026-03-22" },
+  { id: "f17", name: "loops-loops.mp3",        parent: "shared",   format: "audio/mpeg",           size: 5872640, owner: "ada", date: "2026-04-19" },
+  { id: "f18", name: "draft.txt",              parent: "shared",   format: "text/plain",           size: 1840,    owner: "charles", date: "2026-04-22" }
+];
+
+const MESSAGES = [
+  { id: "m01", from: "charles", to: ["ada"], subject: "Re: notation for the analytical engine",
+    preview: "Your suggestion about expressing the operations as a sequence — yes, I think that's the right shape. I've been…",
+    body: "Dear Ada,\n\nYour suggestion about expressing the operations as a sequence — yes, I think that's the right shape. I've been sketching, and the trouble I keep coming back to is that the notation has to be **legible at speed**. A reader has to track three things at once: the operand, the operator, and the index. Three columns? Or three rows?\n\nI'll bring sketches on Thursday. Could we meet at 4?\n\n— Charles",
+    date: "2026-04-24T09:14", unread: true, attachments: ["f01"] },
+  { id: "m02", from: "mary", to: ["ada", "charles"], subject: "Sunday lunch",
+    preview: "Bringing the proof copy of my essay. Also: who is responsible for the wine?",
+    body: "All —\n\nBringing the proof copy of my essay. Also: who is responsible for the wine? I have it written down somewhere that it was Charles's turn but I do not trust my own handwriting from last month.\n\nMary",
+    date: "2026-04-23T18:42", unread: true, attachments: [] },
+  { id: "m03", from: "alan", to: ["ada"], subject: "Question about your loops essay",
+    preview: "I read it twice. The bit about a phrase returning changed because you have changed — that does a lot of work…",
+    body: "Ada,\n\nI read it twice. The bit about \"a phrase returning changed because you have changed\" — that does a lot of work in the essay. I want to push back gently: a *function* doesn't change between calls, only the world around it does. Or am I being too literal?\n\nA",
+    date: "2026-04-22T11:30", unread: false, attachments: ["f06"] },
+  { id: "m04", from: "grace", to: ["ada"], subject: "Compilers talk on Friday",
+    preview: "Slides are ready. I'm going to demo the language and the compiler back-to-back and let the audience ask…",
+    body: "Slides are ready. I'm going to demo the language and the compiler back-to-back and let the audience ask which one is which. \n\nAlso: thank you for the playlist link. The Pärt is exactly the right register for the morning of a talk.\n\nGrace",
+    date: "2026-04-21T15:08", unread: false, attachments: ["f08"] },
+  { id: "m05", from: "katherine", to: ["ada"], subject: "Re: trajectories piece",
+    preview: "Final-final draft attached. I cut the long footnote you flagged.",
+    body: "Final-final draft attached. I cut the long footnote you flagged — you were right, it was doing two jobs at once. Hope this reads better.\n\nKat",
+    date: "2026-04-20T10:00", unread: false, attachments: ["f07"] },
+  { id: "m06", from: "marie", to: ["ada"], subject: "Lab notebook scans",
+    preview: "Sending one of the scans (lab-notes.jpg). Look at the right margin — that's the equation we kept missing.",
+    body: "Sending one of the scans. Look at the right margin — that's the equation we kept missing. I'd been reading down the page when it was a sidebar all along.\n\nM.",
+    date: "2026-04-19T14:55", unread: false, attachments: ["f15"] },
+  { id: "m07", from: "edsger", to: ["ada"], subject: "On the workflow ontology",
+    preview: "I would like to register a polite objection to the field name \"items\" — it is the most undertyped word in the…",
+    body: "Ada,\n\nI would like to register a polite objection to the field name \"items\" — it is the most undertyped word in the language. \"items\" of what? Why not \"step\"? Or \"todo\"? The schema teaches the reader; precision is courtesy.\n\nE.",
+    date: "2026-04-18T08:20", unread: false, attachments: [] },
+  { id: "m08", from: "charles", to: ["ada"], subject: "Sketch of the punching",
+    preview: "Quick pencil sketch attached. The card is held in place by a small tab; the tab releases when…",
+    body: "Quick pencil sketch attached. The card is held in place by a small tab; the tab releases when the operation is consumed. I think that solves the indexing problem.\n\nC.",
+    date: "2026-04-17T22:11", unread: false, attachments: ["f01"] },
+  { id: "m09", from: "ada", to: ["charles"], subject: "Indexing — a thought",
+    preview: "What if we let the index be implicit in the order, and use the columns only for operand/operator?",
+    body: "Charles,\n\nWhat if we let the index be implicit in the order, and use the columns only for operand/operator? It loses one column of information but gains a lot of legibility, and I think the tape preserves the order anyway.\n\nA.",
+    date: "2026-04-17T07:44", unread: false, attachments: [] },
+  { id: "m10", from: "grace", to: ["ada", "alan"], subject: "Naming things",
+    preview: "Alan's point about names is right. We've been calling it \"the engine\" for two months and nobody can…",
+    body: "Alan's point about names is right. We've been calling it \"the engine\" for two months and nobody can tell which one. Proposal: name it after a person who never asked to have a thing named after them.\n\nGH",
+    date: "2026-04-16T19:00", unread: false, attachments: [] },
+  { id: "m11", from: "alan", to: ["ada"], subject: "Cycling",
+    preview: "It rained again. Still came in under an hour. The chain is making a noise I'd rather it didn't.",
+    body: "It rained again. Still came in under an hour. The chain is making a noise I'd rather it didn't. Anyway: are you free on Saturday? There's a ride out to the windmill that's mostly downhill on the way back, which is the kind of ride I prefer.\n\nA.",
+    date: "2026-04-15T20:15", unread: false, attachments: [] },
+  { id: "m12", from: "mary", to: ["ada"], subject: "Proof copy",
+    preview: "The proof copy is full of red ink. Most of it is mine, in the margins, arguing with myself.",
+    body: "The proof copy is full of red ink. Most of it is mine, in the margins, arguing with myself. There is a single small mark in pencil where I think you were trying to be polite. I have changed it. Thank you.\n\nMary",
+    date: "2026-04-14T16:33", unread: false, attachments: [] }
+];
+
+const EVENTS = [
+  { id: "e01", title: "Coffee with Charles",        date: "2026-04-25", time: "10:00", duration: 60, attendees: ["charles"], location: "Café on the Square", color: 0 },
+  { id: "e02", title: "Compilers talk (Grace)",     date: "2026-04-25", time: "14:00", duration: 90, attendees: ["grace", "alan"], location: "Lecture Hall A",  color: 1 },
+  { id: "e03", title: "Sunday lunch",               date: "2026-04-26", time: "13:00", duration: 120, attendees: ["mary", "charles"], location: "Home",         color: 2 },
+  { id: "e04", title: "Cycle ride to windmill",     date: "2026-04-27", time: "09:00", duration: 240, attendees: ["alan"], location: "Trumpington gate",       color: 0 },
+  { id: "e05", title: "Lab visit",                  date: "2026-04-28", time: "11:00", duration: 90, attendees: ["marie"], location: "Curie Lab",              color: 1 },
+  { id: "e06", title: "Trajectories review",        date: "2026-04-29", time: "15:30", duration: 60, attendees: ["katherine"], location: "Online",             color: 2 },
+  { id: "e07", title: "Workflow ontology meeting",  date: "2026-04-30", time: "10:00", duration: 60, attendees: ["edsger"], location: "Online",                color: 0 },
+  { id: "e08", title: "Public lecture",             date: "2026-05-02", time: "19:00", duration: 90, attendees: ["mary"], location: "Royal Institution",        color: 1 },
+  { id: "e09", title: "Coffee with Charles",        date: "2026-05-04", time: "10:00", duration: 60, attendees: ["charles"], location: "Café on the Square",   color: 0 }
+];
+
+const NOTES = [
+  { id: "n01", title: "On loops, in two senses",
+    author: "ada", date: "2026-04-19",
+    keywords: ["recursion", "music", "linked-data"],
+    text: "Two kinds of loops have been on my mind.\n\n## The first kind\n\nThe loop a program makes when it calls *itself*. A function reaches down its own throat and pulls out the next term. Done badly, this is a stack overflow. Done well, it's a fractal.\n\n## The second kind\n\nThe loop a record makes on a turntable — a closed groove that lets a phrase return changed because you have changed.\n\n## What links them\n\nIn both cases, the **same shape recurs** but the *content* shifts. That's also what a `@context` does in JSON-LD: the keys recur, the values link out.\n\n```\n{ \"@context\": { \"@vocab\": \"https://schema.org/\" } }\n```\n\n> A schema is a courtesy you offer the reader.\n\nI think there's a longer essay here. For now, a paragraph." },
+  { id: "n02", title: "Trajectories",
+    author: "katherine", date: "2026-04-15",
+    keywords: ["physics", "computing"],
+    text: "A trajectory is a calculation that *insists*. You write it down, you check it twice, and then you stand by it.\n\n## What I keep telling students\n\nThe arithmetic is not the hard part. The hard part is the *bookkeeping*: knowing which number is which, and not letting the units quietly go missing in the third column.\n\n## Notation as discipline\n\nA good notation prevents a mistake before it happens. It refuses to let you write a thing that is meaningless." },
+  { id: "n03", title: "Goto, a recantation (joking)",
+    author: "edsger", date: "2026-04-10",
+    keywords: ["computing", "style"],
+    text: "I will not in fact recant.\n\nThe usual objection — that *some* loops are clearer with a goto — assumes the loops are already there. The discipline is to *write the program differently from the start*, not to patch a poor structure with a backwards leap.\n\n```\nfor (i = 0; i < n; ++i)\n  if (a[i] == x) goto found;  /* no */\n```\n\nA program is read more often than it is written. That is the entire argument." },
+  { id: "n04", title: "What a compiler is, in one paragraph",
+    author: "grace", date: "2026-04-08",
+    keywords: ["computing"],
+    text: "A compiler is a translator that does not get tired. You teach it a vocabulary and a grammar, and from then on it will translate the same sentence the same way every time, even at three in the morning. The miracle is not that this is *fast*. The miracle is that it is *patient*." },
+  { id: "n05", title: "On notation",
+    author: "ada", date: "2026-04-05",
+    keywords: ["maths", "writing"],
+    text: "A notation is a kind of architecture for thought. Bad notation forces you to carry the same idea up and down the stairs all day. Good notation puts it on the floor where it lives.\n\nSee also Mary's [proof](#) on the orbit calculations — same trick." },
+  { id: "n06", title: "A reading list",
+    author: "mary", date: "2026-04-02",
+    keywords: ["reading"],
+    text: "## In progress\n- *On the Connexion of the Physical Sciences* (rereading)\n- Fourier — slow going but worth it\n\n## Up next\n- An essay collection on translation\n- Whatever Ada is reading, on principle" }
+];
+
+const TASK_LISTS = [
+  { id: "tl1", title: "This week", owner: "ada",
+    items: [
+      { id: "t1", label: "Reply to Charles re: notation",      done: true,  due: "2026-04-25", priority: "high" },
+      { id: "t2", label: "Sketch the Memex inbox UI",          done: false, due: "2026-04-26", priority: "high" },
+      { id: "t3", label: "Try JSON-LD framing on a feed",      done: false, due: "2026-04-27", priority: "medium" },
+      { id: "t4", label: "Walk by the river",                  done: false, due: "2026-04-28", priority: "low" }
+    ] },
+  { id: "tl2", title: "Reading list", owner: "ada",
+    items: [
+      { id: "t5", label: "Bush — As We May Think",             done: true,  due: null, priority: "high" },
+      { id: "t6", label: "Vannevar's letters (selected)",       done: false, due: null, priority: "medium" },
+      { id: "t7", label: "Mary's reading list (her version)",  done: false, due: null, priority: "low" }
+    ] },
+  { id: "tl3", title: "Linked Objects demo", owner: "ada",
+    items: [
+      { id: "t8",  label: "Ship the explorer",                  done: true,  due: "2026-04-25", priority: "high" },
+      { id: "t9",  label: "Build the Hub web-OS",               done: false, due: "2026-04-26", priority: "high" },
+      { id: "t10", label: "Document the @context choices",      done: false, due: "2026-04-30", priority: "medium" }
+    ] }
+];
+
+/* photos use a generated SVG so we don't ship binaries */
+const PHOTOS = [
+  { id: "ph1",  title: "River walk",     by: "ada",       date: "2026-04-20", g: ["#7c5cff","#00d4ff","#34d399"] },
+  { id: "ph2",  title: "Study window",   by: "ada",       date: "2026-04-18", g: ["#fbbf24","#ff6ec7","#7c5cff"] },
+  { id: "ph3",  title: "First snow",     by: "mary",      date: "2026-04-12", g: ["#e7ecf4","#9aa4b8","#1a1f2e"] },
+  { id: "ph4",  title: "Blackboard",     by: "alan",      date: "2026-04-08", g: ["#1a1f2e","#7c5cff","#161a23"] },
+  { id: "ph5",  title: "Pier",           by: "grace",     date: "2026-04-05", g: ["#0099cc","#7c5cff","#1a1f2e"] },
+  { id: "ph6",  title: "Lighthouse",     by: "katherine", date: "2026-04-02", g: ["#fbbf24","#f87171","#7c5cff"] },
+  { id: "ph7",  title: "Lab notes",      by: "marie",     date: "2026-03-28", g: ["#34d399","#00d4ff","#7c5cff"] },
+  { id: "ph8",  title: "Garden path",    by: "edsger",    date: "2026-03-22", g: ["#84cc16","#34d399","#fbbf24"] },
+  { id: "ph9",  title: "Café morning",   by: "ada",       date: "2026-03-18", g: ["#ffb84d","#ff6ec7","#7c5cff"] },
+  { id: "ph10", title: "Bridge",         by: "alan",      date: "2026-03-15", g: ["#06b6d4","#7c5cff","#ec4899"] },
+  { id: "ph11", title: "Wave",           by: "katherine", date: "2026-03-10", g: ["#0ea5e9","#06b6d4","#1a1f2e"] },
+  { id: "ph12", title: "Field",          by: "mary",      date: "2026-03-04", g: ["#84cc16","#fbbf24","#34d399"] }
+];
+
+const PLAYLISTS = [
+  { id: "pl1", name: "Loops & long-form", creator: "ada",
+    tracks: [
+      { name: "Spiegel im Spiegel",          artist: "Arvo Pärt",   duration: 542 },
+      { name: "Music for Airports 1/1",      artist: "Brian Eno",   duration: 1041 },
+      { name: "Avril 14th",                  artist: "Aphex Twin",  duration: 125 },
+      { name: "Vespers",                     artist: "Alvin Lucier",duration: 340 },
+      { name: "On the Nature of Daylight",   artist: "Max Richter", duration: 374 },
+      { name: "Vladimir's Blues",            artist: "Max Richter", duration: 104 }
+    ] },
+  { id: "pl2", name: "Working playlist", creator: "grace",
+    tracks: [
+      { name: "Träumerei",       artist: "Schumann",        duration: 175 },
+      { name: "Gymnopédie No. 1",artist: "Erik Satie",      duration: 198 },
+      { name: "Aria (Goldberg)", artist: "J.S. Bach",       duration: 286 },
+      { name: "Adagietto",       artist: "Mahler",          duration: 522 }
+    ] }
+];
+
+/* ================================================================
+ *  ICONS — single source so we can reuse
+ * ================================================================ */
+const ICON = {
+  home:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg>',
+  files:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
+  mail:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+  calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+  contacts: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  notes:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>',
+  tasks:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+  photos:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+  music:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+  activity: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+  settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  search:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
+  send:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
+  inbox:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>',
+  star:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  trash:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  plus:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  chevL:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
+  chevR:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+  check:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  play:     '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>',
+  globe:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+  phone:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+  doc:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  code:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
+  img:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+  audio:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+  link:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 1 0-7l3-3a5 5 0 0 1 7 7l-1.5 1.5"/><path d="M14 11a5 5 0 0 1 0 7l-3 3a5 5 0 0 1-7-7l1.5-1.5"/></svg>'
+};
+
+/* ================================================================
+ *  APP REGISTRY
+ * ================================================================ */
+const APPS = [
+  { id: "home",     name: "Home",     icon: ICON.home,     hasSidebar: false, color: "0" },
+  { id: "files",    name: "Files",    icon: ICON.files,    hasSidebar: true,  color: "1" },
+  { id: "mail",     name: "Mail",     icon: ICON.mail,     hasSidebar: true,  color: "2" },
+  { id: "calendar", name: "Calendar", icon: ICON.calendar, hasSidebar: true,  color: "0" },
+  { id: "contacts", name: "Contacts", icon: ICON.contacts, hasSidebar: true,  color: "3" },
+  { id: "notes",    name: "Notes",    icon: ICON.notes,    hasSidebar: true,  color: "1" },
+  { id: "tasks",    name: "Tasks",    icon: ICON.tasks,    hasSidebar: true,  color: "2" },
+  { id: "photos",   name: "Photos",   icon: ICON.photos,   hasSidebar: true,  color: "4" },
+  { id: "music",    name: "Music",    icon: ICON.music,    hasSidebar: true,  color: "5" },
+  { id: "activity", name: "Activity", icon: ICON.activity, hasSidebar: false, color: "6" },
+  { id: "settings", name: "Settings", icon: ICON.settings, hasSidebar: false, color: "7" }
+];
+
+/* ================================================================
+ *  STATE
+ * ================================================================ */
+const state = {
+  app: "home",
+  // app-specific
+  files: { folder: "linked" },
+  mail:  { selected: "m01", folder: "inbox" },
+  calendar: { year: 2026, month: 3 /* zero-indexed → April */ },
+  contacts: { selected: null },
+  notes: { selected: "n01" },
+  tasks: { /* state lives in TASK_LISTS items.done */ },
+  photos: { selected: null },
+  music: { playlist: "pl1", playing: -1 },
+};
+
+/* ================================================================
+ *  HELPERS
+ * ================================================================ */
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+
+function escape(s) { return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function initials(name) { return name.split(" ").map(s => s[0]).join("").slice(0, 2); }
+function person(id) { return PEOPLE.find(p => p.id === id); }
+function file(id) { return FILES.find(f => f.id === id); }
+function fmtBytes(b) {
+  if (b == null) return "";
+  if (b < 1024) return b + " B";
+  if (b < 1024 * 1024) return (b / 1024).toFixed(1) + " KB";
+  return (b / (1024 * 1024)).toFixed(2) + " MB";
+}
+function fmtDur(seconds) {
+  const m = Math.floor(seconds / 60), s = seconds % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+function relTime(dateStr) {
+  const now = new Date("2026-04-25T12:00:00");
+  const d = new Date(dateStr);
+  const diff = (now - d) / 1000;
+  if (diff < 60) return "just now";
+  if (diff < 3600) return Math.floor(diff / 60) + "m ago";
+  if (diff < 86400) return Math.floor(diff / 3600) + "h ago";
+  const days = Math.floor(diff / 86400);
+  if (days < 7) return days + "d ago";
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+function fmtTime(t) { return t; }
+function md(text) {
+  let h = escape(text);
+  h = h.replace(/```([\s\S]*?)```/g, (_, c) => `<pre><code>${c.trim()}</code></pre>`);
+  h = h.replace(/^## (.*)$/gm, "<h2>$1</h2>");
+  h = h.replace(/^### (.*)$/gm, "<h3>$1</h3>");
+  h = h.replace(/^&gt; (.*)$/gm, "<blockquote>$1</blockquote>");
+  h = h.replace(/^- (.+)$/gm, "<li>$1</li>");
+  h = h.replace(/(<li>.*<\/li>\n?)+/g, m => "<ul>" + m + "</ul>");
+  h = h.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  h = h.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  h = h.replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
+  h = h.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+  h = h.split(/\n{2,}/).map(p => {
+    if (/^<(h2|h3|pre|ul|blockquote)/.test(p)) return p;
+    return `<p>${p.replace(/\n/g, "<br>")}</p>`;
+  }).join("");
+  return h;
+}
+
+/* ================================================================
+ *  TOPBAR + RAIL
+ * ================================================================ */
+function buildRail() {
+  const rail = $("#rail");
+  rail.innerHTML = APPS.slice(0, 9).map((a, i) => railItem(a, i + 1)).join("")
+    + '<div class="rail-divider"></div>'
+    + APPS.slice(9).map((a) => railItem(a)).join("");
+  rail.querySelectorAll(".rail-item").forEach(el => {
+    el.addEventListener("click", () => switchApp(el.dataset.app));
+  });
+}
+function railItem(a, kbd) {
+  const unread = a.id === "mail" ? MESSAGES.filter(m => m.unread).length : 0;
+  return `
+    <button class="rail-item ${state.app === a.id ? "active" : ""}" data-app="${a.id}" title="${a.name}">
+      ${a.icon}
+      ${unread ? `<span class="badge">${unread}</span>` : ""}
+      <span class="rail-tip">${a.name}${kbd ? ` <span class="kbd">${kbd}</span>` : ""}</span>
+    </button>
+  `;
+}
+function setRailActive() {
+  $$(".rail-item").forEach(el => el.classList.toggle("active", el.dataset.app === state.app));
+}
+
+function setTopbarTitle(html) { $("#topbar-title").innerHTML = html; }
+
+/* ================================================================
+ *  APP SWITCHER
+ * ================================================================ */
+function switchApp(id) {
+  if (!APPS.find(a => a.id === id)) return;
+  state.app = id;
+  setRailActive();
+  const app = APPS.find(a => a.id === id);
+  const main = $("#main");
+  const sidebar = $("#sidebar");
+  if (app.hasSidebar) {
+    sidebar.style.display = "flex";
+    main.classList.remove("main-no-sidebar");
+  } else {
+    sidebar.style.display = "none";
+    main.classList.add("main-no-sidebar");
+  }
+  RENDERERS[id]();
+  history.replaceState(null, "", "#" + id);
+}
+
+/* ================================================================
+ *  RENDERERS
+ * ================================================================ */
+const RENDERERS = {
+
+  home() {
+    setTopbarTitle("");
+    const today = EVENTS.filter(e => e.date === "2026-04-25").sort((a,b) => a.time.localeCompare(b.time));
+    const tomorrow = EVENTS.filter(e => e.date === "2026-04-26");
+    const recent = activityFeed().slice(0, 6);
+    const unread = MESSAGES.filter(m => m.unread).length;
+
+    $("#main").innerHTML = `
+      <div class="content home">
+        <h1 class="greeting">Good afternoon, <span>Ada</span></h1>
+        <p class="subgreet">It's Saturday, 25 April. You have ${today.length} events today and ${unread} unread messages.</p>
+
+        <div class="widgets">
+
+          <div class="widget w-4">
+            <h3>${ICON.globe} Today</h3>
+            <div class="weather">
+              <div class="icon">☀</div>
+              <div>
+                <div class="temp">14°</div>
+                <div class="info"><span class="place">Cambridge</span><br>Sunny · light breeze</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="widget w-8">
+            <h3>${ICON.calendar} Today's agenda <a class="more" data-go="calendar">Open calendar →</a></h3>
+            ${today.length ? `<div class="agenda-list">${today.map(e => `
+              <div class="agenda-item" data-go="calendar">
+                <div class="agenda-time">${e.time}</div>
+                <div class="agenda-bar"></div>
+                <div>
+                  <div class="agenda-title">${escape(e.title)}</div>
+                  <div class="agenda-meta">${escape(e.location)} · with ${e.attendees.map(a => person(a).name.split(" ")[0]).join(", ")}</div>
+                </div>
+              </div>
+            `).join("")}</div>` : `<div style="color:var(--text-faint);padding:8px 0">Nothing on today.</div>`}
+          </div>
+
+          <div class="widget w-12">
+            <h3>${ICON.activity} Recent activity <a class="more" data-go="activity">See all →</a></h3>
+            <div class="activity-feed">
+              ${recent.map(a => `
+                <div class="feed-item">
+                  <div class="feed-icon">${a.icon}</div>
+                  <div class="feed-content">${a.html}</div>
+                  <div class="feed-time">${a.timeText}</div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+
+          <div class="widget w-4">
+            <h3>${ICON.tasks} Tasks <a class="more" data-go="tasks">All →</a></h3>
+            ${(() => {
+              const flat = TASK_LISTS.flatMap(tl => tl.items.filter(i => !i.done)).slice(0, 4);
+              return flat.length ? flat.map(t => `
+                <div class="task-row" data-go="tasks">
+                  <span class="check"></span>
+                  <span class="lbl">${escape(t.label)}</span>
+                </div>
+              `).join("") : `<div style="color:var(--text-faint)">Inbox zero.</div>`;
+            })()}
+          </div>
+
+          <div class="widget w-4">
+            <h3>${ICON.contacts} People <a class="more" data-go="contacts">All →</a></h3>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+              ${PEOPLE.slice(0, 8).map(p => `
+                <div title="${escape(p.name)}" class="lo-link" data-person="${p.id}" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:6px 4px;border-radius:8px">
+                  <div class="ava av-c${p.color}" style="width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:white;font-weight:600;font-size:12px">${initials(p.name)}</div>
+                  <div style="font-size:11px;color:var(--text-dim);text-align:center">${escape(p.name.split(" ")[0])}</div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+
+          <div class="widget w-4">
+            <h3>${ICON.link} Quick launch</h3>
+            <div class="q-grid">
+              ${["files","mail","calendar","notes"].map(id => {
+                const a = APPS.find(x => x.id === id);
+                return `<div class="q-card" data-go="${id}"><div class="ico">${a.icon}</div>${a.name}</div>`;
+              }).join("")}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    `;
+
+    $("#main").querySelectorAll("[data-go]").forEach(el => el.addEventListener("click", (e) => { e.stopPropagation(); switchApp(el.dataset.go); }));
+    $("#main").querySelectorAll("[data-person]").forEach(el => el.addEventListener("click", (e) => { e.stopPropagation(); state.contacts.selected = el.dataset.person; switchApp("contacts"); }));
+    wireCrossLinks($("#main"));
+  },
+
+  files() {
+    setTopbarTitle(`<span class="crumb">Hub</span> / Files`);
+    const cur = FOLDERS.find(f => f.id === state.files.folder) || FOLDERS[0];
+    $("#sidebar").innerHTML = `
+      <div class="sidebar-head"><h2>Files</h2><button class="btn-primary">${ICON.plus} New</button></div>
+      <div class="sidebar-body">
+        <div class="sb-section">
+          <div class="sb-label">Folders</div>
+          ${FOLDERS.filter(f => f.parent === "root" || f.parent === null).map(f => sbFolder(f, 0)).join("")}
+        </div>
+        <div class="sb-section">
+          <div class="sb-label">Filters</div>
+          <button class="sb-item">${ICON.star} Starred</button>
+          <button class="sb-item">${ICON.img} Images</button>
+          <button class="sb-item">${ICON.doc} Documents</button>
+          <button class="sb-item">${ICON.audio} Audio</button>
+        </div>
+      </div>
+    `;
+    $$("#sidebar [data-folder]").forEach(el => el.addEventListener("click", () => { state.files.folder = el.dataset.folder; RENDERERS.files(); }));
+
+    const path = folderPath(cur);
+    const items = [
+      ...FOLDERS.filter(f => f.parent === cur.id).map(f => ({ ...f, kind: "dir" })),
+      ...FILES.filter(f => f.parent === cur.id).map(f => ({ ...f, kind: "file" }))
+    ];
+
+    $("#main").innerHTML = `
+      <div class="content" style="height:100%;display:flex;flex-direction:column">
+        <div class="files-toolbar">
+          <div class="breadcrumb">
+            ${path.map((p, i) => `
+              ${i > 0 ? '<span class="sep">/</span>' : ""}
+              <span class="crumb ${i === path.length - 1 ? "cur" : ""}" data-folder="${p.id}">${escape(p.name)}</span>
+            `).join("")}
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn-primary">${ICON.plus} Upload</button>
+          </div>
+        </div>
+        <div class="files-grid">
+          ${items.map(it => fileCard(it)).join("")}
+        </div>
+      </div>
+    `;
+    $$(".breadcrumb [data-folder]").forEach(el => el.addEventListener("click", () => { state.files.folder = el.dataset.folder; RENDERERS.files(); }));
+    $$("[data-open-folder]").forEach(el => el.addEventListener("click", () => { state.files.folder = el.dataset.openFolder; RENDERERS.files(); }));
+    $$("[data-open-file]").forEach(el => el.addEventListener("click", () => {
+      const f = file(el.dataset.openFile);
+      showToast(`Opening "${f.name}" — owner: ${person(f.owner).name}`);
+    }));
+  },
+
+  mail() {
+    setTopbarTitle(`<span class="crumb">Hub</span> / Mail`);
+    const counts = {
+      inbox: MESSAGES.length,
+      unread: MESSAGES.filter(m => m.unread).length,
+      sent: MESSAGES.filter(m => m.from === "ada").length
+    };
+    $("#sidebar").innerHTML = `
+      <button class="compose-btn">${ICON.send} Compose</button>
+      <div class="sidebar-body">
+        <div class="sb-section">
+          <button class="sb-item ${state.mail.folder === "inbox" ? "active" : ""}" data-folder="inbox">${ICON.inbox} Inbox <span class="count">${counts.unread}</span></button>
+          <button class="sb-item" data-folder="starred">${ICON.star} Starred</button>
+          <button class="sb-item" data-folder="sent">${ICON.send} Sent <span class="count">${counts.sent}</span></button>
+          <button class="sb-item" data-folder="trash">${ICON.trash} Trash</button>
+        </div>
+        <div class="sb-section">
+          <div class="sb-label">From</div>
+          ${PEOPLE.filter(p => MESSAGES.some(m => m.from === p.id)).slice(0, 6).map(p => `
+            <button class="sb-item" data-from="${p.id}">
+              <span class="ava av-c${p.color}" style="width:18px;height:18px;border-radius:50%;display:inline-grid;place-items:center;color:white;font-size:9px;font-weight:600">${initials(p.name)}</span>
+              ${escape(p.name)}
+            </button>
+          `).join("")}
+        </div>
+      </div>
+    `;
+
+    const list = MESSAGES.slice().sort((a, b) => b.date.localeCompare(a.date));
+    const sel = MESSAGES.find(m => m.id === state.mail.selected) || list[0];
+    if (sel) sel.unread = false;
+
+    $("#main").innerHTML = `
+      <div class="content" style="height:100%">
+        <div class="mail-layout">
+          <div class="mail-list">
+            <div class="mail-list-head">
+              <span class="title">Inbox</span>
+              <span class="count">${list.length} messages</span>
+            </div>
+            ${list.map(m => {
+              const from = person(m.from);
+              return `
+                <div class="mail-item ${m.id === sel.id ? "active" : ""} ${m.unread ? "unread" : ""}" data-msg="${m.id}">
+                  <div class="row1">
+                    <span class="from">${escape(from.name)}</span>
+                    <span class="when">${relTime(m.date)}</span>
+                  </div>
+                  <div class="subject">${escape(m.subject)}</div>
+                  <div class="preview">${escape(m.preview)}</div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+          <div class="mail-reader">
+            ${sel ? renderMail(sel) : `<div class="empty-state">${ICON.mail}<div>Select a message</div></div>`}
+          </div>
+        </div>
+      </div>
+    `;
+    $$("#main [data-msg]").forEach(el => el.addEventListener("click", () => { state.mail.selected = el.dataset.msg; RENDERERS.mail(); }));
+    $$("#main [data-link-person]").forEach(el => el.addEventListener("click", () => { state.contacts.selected = el.dataset.linkPerson; switchApp("contacts"); }));
+    $$("#main [data-link-file]").forEach(el => el.addEventListener("click", () => {
+      const f = file(el.dataset.linkFile);
+      state.files.folder = f.parent;
+      switchApp("files");
+    }));
+    setRailActive(); // refresh badge counts
+    buildRail();
+    setRailActive();
+  },
+
+  calendar() {
+    setTopbarTitle(`<span class="crumb">Hub</span> / Calendar`);
+    const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    const { year, month } = state.calendar;
+
+    $("#sidebar").innerHTML = `
+      <div class="sidebar-head"><h2>Calendar</h2><button class="btn-primary">${ICON.plus} New</button></div>
+      <div class="sidebar-body">
+        <div class="sb-section">
+          <div class="sb-label">Calendars</div>
+          <button class="sb-item active"><span style="width:10px;height:10px;border-radius:3px;background:var(--accent)"></span> Personal</button>
+          <button class="sb-item"><span style="width:10px;height:10px;border-radius:3px;background:var(--accent-2)"></span> Work</button>
+          <button class="sb-item"><span style="width:10px;height:10px;border-radius:3px;background:var(--good)"></span> Family</button>
+        </div>
+        <div class="sb-section">
+          <div class="sb-label">Upcoming</div>
+          ${EVENTS.slice(0, 5).map(e => `
+            <button class="sb-item" data-event="${e.id}" style="font-size:13px">
+              <div style="display:flex;flex-direction:column;align-items:flex-start;gap:1px">
+                <span>${escape(e.title)}</span>
+                <span style="color:var(--text-faint);font-size:11px;font-family:var(--mono)">${e.date.slice(5)} · ${e.time}</span>
+              </div>
+            </button>
+          `).join("")}
+        </div>
+      </div>
+    `;
+
+    $("#main").innerHTML = `
+      <div class="content" style="height:100%;display:flex;flex-direction:column">
+        <div class="cal-toolbar">
+          <div class="cal-title">${monthNames[month]} ${year}</div>
+          <div class="cal-nav">
+            <button class="icon-btn" data-nav="-1">${ICON.chevL}</button>
+            <button class="icon-btn" data-nav="today" style="font-size:12px;padding:0 12px;color:var(--text-dim);width:auto">Today</button>
+            <button class="icon-btn" data-nav="1">${ICON.chevR}</button>
+          </div>
+        </div>
+        <div class="cal-grid" style="flex:1">
+          ${["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d => `<div class="cal-dow">${d}</div>`).join("")}
+          ${calendarDays(year, month).map(d => calDay(d)).join("")}
+        </div>
+      </div>
+    `;
+    $$("#main [data-nav]").forEach(el => el.addEventListener("click", () => {
+      const n = el.dataset.nav;
+      if (n === "today") { state.calendar = { year: 2026, month: 3 }; }
+      else if (n === "-1") {
+        state.calendar.month--;
+        if (state.calendar.month < 0) { state.calendar.month = 11; state.calendar.year--; }
+      } else {
+        state.calendar.month++;
+        if (state.calendar.month > 11) { state.calendar.month = 0; state.calendar.year++; }
+      }
+      RENDERERS.calendar();
+    }));
+    $$("#main [data-event]").forEach(el => el.addEventListener("click", () => {
+      const e = EVENTS.find(x => x.id === el.dataset.event);
+      showToast(`${e.title} · ${e.date} ${e.time} · ${e.location}`);
+    }));
+  },
+
+  contacts() {
+    setTopbarTitle(`<span class="crumb">Hub</span> / Contacts`);
+    $("#sidebar").innerHTML = `
+      <div class="sidebar-head"><h2>Contacts</h2><button class="btn-primary">${ICON.plus} New</button></div>
+      <div class="sidebar-body">
+        <div class="sb-section">
+          <button class="sb-item ${!state.contacts.selected ? "active" : ""}" data-all>${ICON.contacts} All <span class="count">${PEOPLE.length}</span></button>
+          <button class="sb-item">${ICON.star} Starred</button>
+        </div>
+        <div class="sb-section">
+          <div class="sb-label">Tags</div>
+          ${[...new Set(PEOPLE.flatMap(p => p.tags))].map(t => `
+            <button class="sb-item">${ICON.link} ${t} <span class="count">${PEOPLE.filter(p => p.tags.includes(t)).length}</span></button>
+          `).join("")}
+        </div>
+      </div>
+    `;
+    $$("[data-all]").forEach(el => el.addEventListener("click", () => { state.contacts.selected = null; RENDERERS.contacts(); }));
+
+    const sel = state.contacts.selected ? person(state.contacts.selected) : null;
+
+    $("#main").innerHTML = sel
+      ? `<div class="content">${renderContact(sel)}</div>`
+      : `<div class="content"><div class="contacts-grid">
+          ${PEOPLE.map(p => `
+            <div class="contact-card" data-person="${p.id}">
+              <div class="ava av-c${p.color}">${initials(p.name)}</div>
+              <div class="name">${escape(p.name)}</div>
+              <div class="role">${escape(p.role)}</div>
+              <div class="tags">${p.tags.map(t => `<span class="tag-pill">${t}</span>`).join("")}</div>
+            </div>
+          `).join("")}
+        </div></div>`;
+
+    $$("#main [data-person]").forEach(el => el.addEventListener("click", () => { state.contacts.selected = el.dataset.person; RENDERERS.contacts(); }));
+    $$("#main [data-link-msg]").forEach(el => el.addEventListener("click", () => { state.mail.selected = el.dataset.linkMsg; switchApp("mail"); }));
+    $$("#main [data-link-file]").forEach(el => el.addEventListener("click", () => { state.files.folder = file(el.dataset.linkFile).parent; switchApp("files"); }));
+    $$("#main [data-link-event]").forEach(el => el.addEventListener("click", () => { switchApp("calendar"); }));
+    $$("#main [data-link-note]").forEach(el => el.addEventListener("click", () => { state.notes.selected = el.dataset.linkNote; switchApp("notes"); }));
+    $$("#main [data-back]").forEach(el => el.addEventListener("click", () => { state.contacts.selected = null; RENDERERS.contacts(); }));
+  },
+
+  notes() {
+    setTopbarTitle(`<span class="crumb">Hub</span> / Notes`);
+    $("#sidebar").innerHTML = `
+      <div class="sidebar-head"><h2>Notes</h2><button class="btn-primary">${ICON.plus} New</button></div>
+      <div class="sidebar-body">
+        <div class="sb-section">
+          <div class="sb-label">Notebooks</div>
+          <button class="sb-item active">${ICON.notes} All notes <span class="count">${NOTES.length}</span></button>
+          <button class="sb-item">${ICON.star} Starred</button>
+        </div>
+        <div class="sb-section">
+          <div class="sb-label">Tags</div>
+          ${[...new Set(NOTES.flatMap(n => n.keywords))].map(t => `
+            <button class="sb-item">${ICON.link} ${t}</button>
+          `).join("")}
+        </div>
+      </div>
+    `;
+    const sel = NOTES.find(n => n.id === state.notes.selected) || NOTES[0];
+    $("#main").innerHTML = `
+      <div class="content" style="height:100%">
+        <div class="notes-layout">
+          <div class="notes-list">
+            ${NOTES.map(n => `
+              <div class="note-item ${n.id === sel.id ? "active" : ""}" data-note="${n.id}">
+                <div class="nt">${escape(n.title)}</div>
+                <div class="np">${escape(n.text.replace(/[#*`>\n]/g, " ").slice(0, 110))}</div>
+                <div class="nm">${person(n.author).name.split(" ")[0]} · ${n.date}</div>
+              </div>
+            `).join("")}
+          </div>
+          <div class="note-reader">
+            <h1>${escape(sel.title)}</h1>
+            <div class="meta">
+              <span class="lo-link" data-link-person="${sel.author}">${escape(person(sel.author).name)}</span>
+              <span>·</span>
+              <span>${sel.date}</span>
+            </div>
+            <div class="body">${md(sel.text)}</div>
+            <div class="tags">${sel.keywords.map(k => `<span class="tag-pill">${k}</span>`).join("")}</div>
+          </div>
+        </div>
+      </div>
+    `;
+    $$("#main [data-note]").forEach(el => el.addEventListener("click", () => { state.notes.selected = el.dataset.note; RENDERERS.notes(); }));
+    $$("#main [data-link-person]").forEach(el => el.addEventListener("click", () => { state.contacts.selected = el.dataset.linkPerson; switchApp("contacts"); }));
+  },
+
+  tasks() {
+    setTopbarTitle(`<span class="crumb">Hub</span> / Tasks`);
+    $("#sidebar").innerHTML = `
+      <div class="sidebar-head"><h2>Tasks</h2><button class="btn-primary">${ICON.plus} New list</button></div>
+      <div class="sidebar-body">
+        <div class="sb-section">
+          ${TASK_LISTS.map(tl => {
+            const done = tl.items.filter(i => i.done).length;
+            return `<button class="sb-item">${ICON.tasks} ${escape(tl.title)} <span class="count">${done}/${tl.items.length}</span></button>`;
+          }).join("")}
+        </div>
+        <div class="sb-section">
+          <div class="sb-label">Filters</div>
+          <button class="sb-item">${ICON.star} Today</button>
+          <button class="sb-item">${ICON.calendar} Upcoming</button>
+        </div>
+      </div>
+    `;
+    $("#main").innerHTML = `
+      <div class="content">
+        <div class="tasks-layout">
+          ${TASK_LISTS.map(tl => {
+            const done = tl.items.filter(i => i.done).length;
+            const pct = Math.round(done / tl.items.length * 100);
+            return `
+              <div class="tlist-card">
+                <div class="tlist-head">
+                  <h2>${escape(tl.title)}</h2>
+                  <div class="progress-mini">${done}/${tl.items.length} · ${pct}%</div>
+                </div>
+                ${tl.items.map(t => `
+                  <div class="task-row ${t.done ? "done" : ""}" data-list="${tl.id}" data-task="${t.id}">
+                    <span class="check">${ICON.check}</span>
+                    <span class="lbl">${escape(t.label)}</span>
+                    ${t.due ? `<span class="due">${t.due.slice(5)}</span>` : ""}
+                  </div>
+                `).join("")}
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </div>
+    `;
+    $$("#main .task-row").forEach(el => el.addEventListener("click", () => {
+      const tl = TASK_LISTS.find(x => x.id === el.dataset.list);
+      const t = tl.items.find(x => x.id === el.dataset.task);
+      t.done = !t.done;
+      RENDERERS.tasks();
+    }));
+  },
+
+  photos() {
+    setTopbarTitle(`<span class="crumb">Hub</span> / Photos`);
+    $("#sidebar").innerHTML = `
+      <div class="sidebar-head"><h2>Photos</h2><button class="btn-primary">${ICON.plus} Upload</button></div>
+      <div class="sidebar-body">
+        <div class="sb-section">
+          <button class="sb-item active">${ICON.photos} All photos <span class="count">${PHOTOS.length}</span></button>
+          <button class="sb-item">${ICON.star} Favourites</button>
+        </div>
+        <div class="sb-section">
+          <div class="sb-label">By</div>
+          ${[...new Set(PHOTOS.map(p => p.by))].map(id => `
+            <button class="sb-item">
+              <span class="ava av-c${person(id).color}" style="width:18px;height:18px;border-radius:50%;display:inline-grid;place-items:center;color:white;font-size:9px;font-weight:600">${initials(person(id).name)}</span>
+              ${escape(person(id).name)} <span class="count">${PHOTOS.filter(p => p.by === id).length}</span>
+            </button>
+          `).join("")}
+        </div>
+      </div>
+    `;
+    $("#main").innerHTML = `
+      <div class="content"><div class="photos-grid">
+        ${PHOTOS.map(p => `
+          <div class="photo" data-photo="${p.id}" style="background:linear-gradient(135deg, ${p.g.join(", ")})">
+            <div class="fade">${escape(p.title)} · ${person(p.by).name.split(" ")[0]}</div>
+          </div>
+        `).join("")}
+      </div></div>
+    `;
+    $$("#main [data-photo]").forEach(el => el.addEventListener("click", () => openLightbox(el.dataset.photo)));
+  },
+
+  music() {
+    setTopbarTitle(`<span class="crumb">Hub</span> / Music`);
+    const pl = PLAYLISTS.find(p => p.id === state.music.playlist);
+    $("#sidebar").innerHTML = `
+      <div class="sidebar-head"><h2>Music</h2></div>
+      <div class="sidebar-body">
+        <div class="sb-section">
+          <div class="sb-label">Playlists</div>
+          ${PLAYLISTS.map(p => `<button class="sb-item ${p.id === state.music.playlist ? "active" : ""}" data-playlist="${p.id}">${ICON.music} ${escape(p.name)} <span class="count">${p.tracks.length}</span></button>`).join("")}
+        </div>
+        <div class="sb-section">
+          <div class="sb-label">Library</div>
+          <button class="sb-item">${ICON.audio} All tracks</button>
+          <button class="sb-item">${ICON.contacts} Artists</button>
+          <button class="sb-item">${ICON.star} Favourites</button>
+        </div>
+      </div>
+    `;
+    $$("#sidebar [data-playlist]").forEach(el => el.addEventListener("click", () => { state.music.playlist = el.dataset.playlist; state.music.playing = -1; RENDERERS.music(); }));
+
+    const totalSec = pl.tracks.reduce((s, t) => s + t.duration, 0);
+    $("#main").innerHTML = `
+      <div class="content"><div class="music-page">
+        <div class="pl-hero">
+          <div class="cover">${ICON.music}</div>
+          <div class="info">
+            <div class="lbl">Playlist · ${pl.tracks.length} tracks · ${Math.floor(totalSec/60)} min</div>
+            <h1>${escape(pl.name)}</h1>
+            <div class="creator">by <span class="lo-link" data-link-person="${pl.creator}">${escape(person(pl.creator).name)}</span></div>
+            <div class="controls">
+              <button class="btn-primary" id="music-play">${ICON.play} Play</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          ${pl.tracks.map((t, i) => `
+            <div class="track-row ${i === state.music.playing ? "playing" : ""}" data-track="${i}">
+              <span class="num">${i + 1}</span>
+              <span class="eq"><span></span><span></span><span></span></span>
+              <span class="t">${escape(t.name)}</span>
+              <span class="a">${escape(t.artist)}</span>
+              <span class="d">${fmtDur(t.duration)}</span>
+            </div>
+          `).join("")}
+        </div>
+      </div></div>
+    `;
+    $$("#main [data-track]").forEach(el => el.addEventListener("click", () => {
+      const i = +el.dataset.track;
+      state.music.playing = state.music.playing === i ? -1 : i;
+      RENDERERS.music();
+    }));
+    $("#music-play").addEventListener("click", () => {
+      state.music.playing = state.music.playing >= 0 ? -1 : 0;
+      RENDERERS.music();
+    });
+    $$("#main [data-link-person]").forEach(el => el.addEventListener("click", () => { state.contacts.selected = el.dataset.linkPerson; switchApp("contacts"); }));
+  },
+
+  activity() {
+    setTopbarTitle(`<span class="crumb">Hub</span> / Activity`);
+    const items = activityFeed();
+    const days = {};
+    items.forEach(it => { (days[it.day] ||= []).push(it); });
+    $("#main").innerHTML = `
+      <div class="content"><div class="activity-page">
+        <h1>Activity</h1>
+        <p class="lede">Everything that happens across your apps, as a stream of linked events.</p>
+        ${Object.entries(days).map(([day, ds]) => `
+          <div class="activity-day">
+            <div class="dlabel">${day}</div>
+            <div class="activity-stream">
+              ${ds.map(it => `
+                <div class="act-item">
+                  <div class="act-icon">${it.icon}</div>
+                  <div class="act-body">
+                    ${it.html}
+                    <span class="when">${it.timeText}</span>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `).join("")}
+      </div></div>
+    `;
+    $$("#main .lo-link[data-link-person]").forEach(el => el.addEventListener("click", () => { state.contacts.selected = el.dataset.linkPerson; switchApp("contacts"); }));
+    $$("#main .lo-link[data-link-msg]").forEach(el => el.addEventListener("click", () => { state.mail.selected = el.dataset.linkMsg; switchApp("mail"); }));
+    $$("#main .lo-link[data-link-file]").forEach(el => el.addEventListener("click", () => { state.files.folder = file(el.dataset.linkFile).parent; switchApp("files"); }));
+    $$("#main .lo-link[data-link-note]").forEach(el => el.addEventListener("click", () => { state.notes.selected = el.dataset.linkNote; switchApp("notes"); }));
+    $$("#main .lo-link[data-link-event]").forEach(el => el.addEventListener("click", () => switchApp("calendar")));
+  },
+
+  settings() {
+    setTopbarTitle(`<span class="crumb">Hub</span> / Settings`);
+    const isLight = document.documentElement.getAttribute("data-theme") === "light";
+    $("#main").innerHTML = `
+      <div class="content"><div class="settings-page">
+        <h1>Settings</h1>
+        <p class="lede" style="color:var(--text-dim);margin:0 0 24px">Personal preferences for your Hub. All stored locally.</p>
+
+        <div class="set-section">
+          <h2>Appearance</h2>
+          <div class="set-row">
+            <div><div class="lbl">Light mode</div><div class="desc">Switch the theme. Press <span class="kbd">T</span> anywhere.</div></div>
+            <div class="toggle ${isLight ? "on" : ""}" id="t-theme"><div class="knob"></div></div>
+          </div>
+          <div class="set-row">
+            <div><div class="lbl">Reduced motion</div><div class="desc">Tone down transitions and animations.</div></div>
+            <div class="toggle"><div class="knob"></div></div>
+          </div>
+        </div>
+
+        <div class="set-section">
+          <h2>Profile</h2>
+          <div class="set-row">
+            <div style="display:flex;align-items:center;gap:14px">
+              <div class="ava av-c0" style="width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:white;font-weight:600">AL</div>
+              <div><div class="lbl">Ada Lovelace</div><div class="desc">ada@example.org · Mathematician</div></div>
+            </div>
+            <button class="btn-primary">Edit</button>
+          </div>
+        </div>
+
+        <div class="set-section">
+          <h2>About</h2>
+          <div class="set-row">
+            <div><div class="lbl">Linked Objects · Hub</div><div class="desc">A demo of a JSON-LD-native multi-app workspace.</div></div>
+            <a class="btn-primary" href="../" style="text-decoration:none">↩ Demo pod</a>
+          </div>
+          <div class="set-row">
+            <div><div class="lbl">Source code</div><div class="desc">github.com/linkedobjects/demo</div></div>
+            <a class="btn-primary" href="https://github.com/linkedobjects/demo" target="_blank" style="text-decoration:none">View →</a>
+          </div>
+        </div>
+      </div></div>
+    `;
+    $("#t-theme").addEventListener("click", toggleTheme);
+  }
+};
+
+/* ================================================================
+ *  RENDER HELPERS
+ * ================================================================ */
+function sbFolder(f, depth) {
+  const isCur = state.files.folder === f.id;
+  const children = FOLDERS.filter(x => x.parent === f.id);
+  return `
+    <button class="sb-item ${isCur ? "active" : ""}" data-folder="${f.id}" style="padding-left:${18 + depth * 14}px">
+      ${ICON.files} ${escape(f.name === "/" ? "Home" : f.name)}
+    </button>
+    ${children.map(c => sbFolder(c, depth + 1)).join("")}
+  `;
+}
+function folderPath(f) {
+  const out = [f];
+  let cur = f;
+  while (cur.parent) {
+    cur = FOLDERS.find(x => x.id === cur.parent);
+    if (cur) out.unshift(cur);
+  }
+  return out;
+}
+function fileCard(it) {
+  if (it.kind === "dir") {
+    return `<div class="file-card dir" data-open-folder="${it.id}">
+      <div class="fi">${ICON.files}</div>
+      <div class="fn">${escape(it.name)}</div>
+      <div class="fs">folder</div>
+    </div>`;
+  }
+  const cls = fileClass(it.format);
+  return `<div class="file-card ${cls}" data-open-file="${it.id}">
+    <div class="fi">${fileIcon(it.format)}</div>
+    <div class="fn">${escape(it.name)}</div>
+    <div class="fs">${fmtBytes(it.size)}</div>
+  </div>`;
+}
+function fileClass(format) {
+  if (!format) return "other";
+  if (format.startsWith("image/")) return "img";
+  if (format.startsWith("audio/")) return "audio";
+  if (format === "text/javascript" || format === "text/css" || format.includes("json")) return "code";
+  if (format === "text/markdown" || format === "text/plain") return "doc";
+  return "other";
+}
+function fileIcon(format) {
+  if (format && format.startsWith("image/")) return ICON.img;
+  if (format && format.startsWith("audio/")) return ICON.audio;
+  if (format === "text/javascript" || format === "text/css" || (format && format.includes("json"))) return ICON.code;
+  return ICON.doc;
+}
+
+function renderMail(m) {
+  const from = person(m.from);
+  const to = m.to.map(t => person(t).name).join(", ");
+  return `
+    <h1>${escape(m.subject)}</h1>
+    <div class="mail-meta">
+      <div class="avatar-sm av-c${from.color}" data-link-person="${from.id}">${initials(from.name)}</div>
+      <div class="from-info">
+        <div class="n" data-link-person="${from.id}">${escape(from.name)}</div>
+        <div class="e">${escape(from.email)} → ${escape(to)}</div>
+      </div>
+      <div class="when">${new Date(m.date).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</div>
+    </div>
+    <div class="mail-body">${m.body.split("\n\n").map(p => `<p>${md(p).replace(/^<p>|<\/p>$/g, "")}</p>`).join("")}</div>
+    ${m.attachments.length ? `
+      <div class="mail-attachments">
+        ${m.attachments.map(fid => {
+          const f = file(fid);
+          return `<div class="mail-attach" data-link-file="${fid}">
+            <div class="fi">${fileIcon(f.format)}</div>
+            <div><div>${escape(f.name)}</div><div style="color:var(--text-faint);font-size:11px;font-family:var(--mono)">${fmtBytes(f.size)}</div></div>
+          </div>`;
+        }).join("")}
+      </div>
+    ` : ""}
+  `;
+}
+
+function renderContact(p) {
+  const messages = MESSAGES.filter(m => m.from === p.id || m.to.includes(p.id)).slice(0, 5);
+  const events = EVENTS.filter(e => e.attendees.includes(p.id)).slice(0, 5);
+  const files = FILES.filter(f => f.owner === p.id).slice(0, 5);
+  const notesByThem = NOTES.filter(n => n.author === p.id);
+  return `
+    <div class="contact-detail">
+      <div style="margin-bottom:14px">
+        <button class="icon-btn" data-back style="width:auto;padding:6px 12px;font-size:12px;color:var(--text-dim)">${ICON.chevL} Back</button>
+      </div>
+      <div class="hero">
+        <div class="ava-lg av-c${p.color}">${initials(p.name)}</div>
+        <div>
+          <h1>${escape(p.name)}</h1>
+          <p class="role">${escape(p.role)}</p>
+          <p class="bio">${escape(p.bio)}</p>
+        </div>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-section">
+          <h3>Contact</h3>
+          <div class="detail-row">${ICON.mail} <span class="v">${escape(p.email)}</span></div>
+          <div class="detail-row">${ICON.phone} <span class="v">${escape(p.phone)}</span></div>
+          <div class="detail-row">${ICON.link} <span class="v">@${p.nick}</span></div>
+          <h3 style="margin-top:18px">Tags</h3>
+          <div class="tags" style="display:flex;gap:6px">${p.tags.map(t => `<span class="tag-pill">${t}</span>`).join("")}</div>
+        </div>
+        <div class="detail-section">
+          <h3>Recent messages</h3>
+          <div class="linked-list">
+            ${messages.length ? messages.map(m => `
+              <div class="linked-row" data-link-msg="${m.id}">
+                <div class="ico">${ICON.mail}</div>
+                <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escape(m.subject)}</div>
+                <span style="color:var(--text-faint);font-size:11px">${relTime(m.date)}</span>
+              </div>
+            `).join("") : `<div style="color:var(--text-faint);font-size:13px;padding:6px 10px">No messages yet.</div>`}
+          </div>
+          ${events.length ? `<h3 style="margin-top:18px">Upcoming together</h3>
+          <div class="linked-list">
+            ${events.map(e => `
+              <div class="linked-row" data-link-event="${e.id}">
+                <div class="ico">${ICON.calendar}</div>
+                <div style="flex:1">${escape(e.title)}</div>
+                <span style="color:var(--text-faint);font-size:11px">${e.date.slice(5)}</span>
+              </div>
+            `).join("")}
+          </div>` : ""}
+        </div>
+      </div>
+      ${(files.length || notesByThem.length) ? `
+        <div class="detail-grid" style="margin-top:22px">
+          ${files.length ? `<div class="detail-section">
+            <h3>Files</h3>
+            <div class="linked-list">
+              ${files.map(f => `<div class="linked-row" data-link-file="${f.id}">
+                <div class="ico">${fileIcon(f.format)}</div>
+                <div style="flex:1">${escape(f.name)}</div>
+                <span style="color:var(--text-faint);font-size:11px">${fmtBytes(f.size)}</span>
+              </div>`).join("")}
+            </div>
+          </div>` : ""}
+          ${notesByThem.length ? `<div class="detail-section">
+            <h3>Notes</h3>
+            <div class="linked-list">
+              ${notesByThem.map(n => `<div class="linked-row" data-link-note="${n.id}">
+                <div class="ico">${ICON.notes}</div>
+                <div style="flex:1">${escape(n.title)}</div>
+                <span style="color:var(--text-faint);font-size:11px">${n.date.slice(5)}</span>
+              </div>`).join("")}
+            </div>
+          </div>` : ""}
+        </div>
+      ` : ""}
+    </div>
+  `;
+}
+
+function calendarDays(y, m) {
+  // produce 42 cells covering this month (Mon-start)
+  const first = new Date(y, m, 1);
+  const offset = (first.getDay() + 6) % 7; // Mon=0
+  const start = new Date(y, m, 1 - offset);
+  const days = [];
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    days.push(d);
+  }
+  return days;
+}
+function calDay(d) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const iso = `${yyyy}-${mm}-${dd}`;
+  const today = "2026-04-25";
+  const inMonth = d.getMonth() === state.calendar.month;
+  const events = EVENTS.filter(e => e.date === iso);
+  return `<div class="cal-day ${inMonth ? "" : "other"} ${iso === today ? "today" : ""}">
+    <div class="num">${d.getDate()}</div>
+    ${events.map(e => `<div class="cal-event ${e.color === 1 ? "alt" : e.color === 2 ? "alt2" : ""}" data-event="${e.id}">${escape(e.title)}</div>`).join("")}
+  </div>`;
+}
+
+/* Wire common cross-app .lo-link[data-link-*] anchors inside a root */
+function wireCrossLinks(root) {
+  root.querySelectorAll(".lo-link[data-link-person]").forEach(el => el.addEventListener("click", (e) => {
+    e.stopPropagation();
+    state.contacts.selected = el.dataset.linkPerson;
+    switchApp("contacts");
+  }));
+  root.querySelectorAll(".lo-link[data-link-msg]").forEach(el => el.addEventListener("click", (e) => {
+    e.stopPropagation();
+    state.mail.selected = el.dataset.linkMsg;
+    switchApp("mail");
+  }));
+  root.querySelectorAll(".lo-link[data-link-file]").forEach(el => el.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const f = file(el.dataset.linkFile);
+    if (f) state.files.folder = f.parent;
+    switchApp("files");
+  }));
+  root.querySelectorAll(".lo-link[data-link-note]").forEach(el => el.addEventListener("click", (e) => {
+    e.stopPropagation();
+    state.notes.selected = el.dataset.linkNote;
+    switchApp("notes");
+  }));
+  root.querySelectorAll(".lo-link[data-link-event]").forEach(el => el.addEventListener("click", (e) => {
+    e.stopPropagation();
+    switchApp("calendar");
+  }));
+}
+
+/* ================================================================
+ *  ACTIVITY FEED — generated from all entities
+ * ================================================================ */
+function activityFeed() {
+  const items = [];
+  MESSAGES.forEach(m => {
+    items.push({
+      ts: m.date,
+      icon: ICON.mail,
+      html: `<span class="lo-link" data-link-person="${m.from}">${escape(person(m.from).name)}</span> sent <span class="lo-link" data-link-msg="${m.id}">"${escape(m.subject)}"</span>`,
+      day: dayLabel(m.date),
+      timeText: relTime(m.date)
+    });
+  });
+  NOTES.forEach(n => {
+    items.push({
+      ts: n.date + "T15:00",
+      icon: ICON.notes,
+      html: `<span class="lo-link" data-link-person="${n.author}">${escape(person(n.author).name)}</span> wrote <span class="lo-link" data-link-note="${n.id}">"${escape(n.title)}"</span>`,
+      day: dayLabel(n.date),
+      timeText: relTime(n.date)
+    });
+  });
+  FILES.forEach(f => {
+    items.push({
+      ts: f.date + "T12:00",
+      icon: fileIcon(f.format),
+      html: `<span class="lo-link" data-link-person="${f.owner}">${escape(person(f.owner).name)}</span> uploaded <span class="lo-link" data-link-file="${f.id}">${escape(f.name)}</span>`,
+      day: dayLabel(f.date),
+      timeText: relTime(f.date)
+    });
+  });
+  EVENTS.forEach(e => {
+    items.push({
+      ts: e.date + "T08:00",
+      icon: ICON.calendar,
+      html: `Event scheduled: <span class="lo-link" data-link-event="${e.id}">${escape(e.title)}</span> with ${e.attendees.map(a => `<span class="lo-link" data-link-person="${a}">${escape(person(a).name.split(" ")[0])}</span>`).join(", ")}`,
+      day: dayLabel(e.date),
+      timeText: relTime(e.date)
+    });
+  });
+  return items.sort((a, b) => b.ts.localeCompare(a.ts));
+}
+function dayLabel(d) {
+  const date = new Date(d);
+  const today = new Date("2026-04-25");
+  const diff = Math.floor((today - date) / 86400000);
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Yesterday";
+  if (diff < 7) return `${diff} days ago`;
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+}
+
+/* ================================================================
+ *  SPOTLIGHT SEARCH
+ * ================================================================ */
+function openSpotlight() {
+  $("#spot-bg").classList.add("on");
+  setTimeout(() => $("#spot-input").focus(), 30);
+  spotSearch("");
+}
+function closeSpotlight() {
+  $("#spot-bg").classList.remove("on");
+  $("#spot-input").value = "";
+}
+function spotSearch(q) {
+  const ql = q.toLowerCase().trim();
+  const results = {
+    people:   PEOPLE.filter(p => !ql || p.name.toLowerCase().includes(ql) || p.role.toLowerCase().includes(ql) || p.bio.toLowerCase().includes(ql)),
+    messages: MESSAGES.filter(m => !ql || m.subject.toLowerCase().includes(ql) || m.body.toLowerCase().includes(ql)),
+    files:    FILES.filter(f => !ql || f.name.toLowerCase().includes(ql)),
+    notes:    NOTES.filter(n => !ql || n.title.toLowerCase().includes(ql) || n.text.toLowerCase().includes(ql)),
+    events:   EVENTS.filter(e => !ql || e.title.toLowerCase().includes(ql) || e.location.toLowerCase().includes(ql)),
+    apps:     APPS.filter(a => !ql || a.name.toLowerCase().includes(ql))
+  };
+  const total = Object.values(results).reduce((s, a) => s + a.length, 0);
+  const root = $("#spot-results");
+  if (!total) {
+    root.innerHTML = `<div class="spot-empty">No results for "${escape(q)}"</div>`;
+    return;
+  }
+  let h = "";
+  const limit = ql ? 5 : 3;
+  if (results.apps.length) h += spotGroup("Apps", results.apps.slice(0, limit), a => ({
+    icon: a.icon, t: a.name, s: "Open " + a.name.toLowerCase(), type: "app", action: () => switchApp(a.id)
+  }));
+  if (results.people.length) h += spotGroup("People", results.people.slice(0, limit), p => ({
+    icon: `<div style="width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:white;font-weight:600;font-size:10px" class="av-c${p.color}">${initials(p.name)}</div>`,
+    t: p.name, s: p.role, type: "Person", action: () => { state.contacts.selected = p.id; switchApp("contacts"); closeSpotlight(); }
+  }));
+  if (results.messages.length) h += spotGroup("Messages", results.messages.slice(0, limit), m => ({
+    icon: ICON.mail, t: m.subject, s: "from " + person(m.from).name, type: "Message", action: () => { state.mail.selected = m.id; switchApp("mail"); closeSpotlight(); }
+  }));
+  if (results.notes.length) h += spotGroup("Notes", results.notes.slice(0, limit), n => ({
+    icon: ICON.notes, t: n.title, s: "by " + person(n.author).name, type: "Note", action: () => { state.notes.selected = n.id; switchApp("notes"); closeSpotlight(); }
+  }));
+  if (results.files.length) h += spotGroup("Files", results.files.slice(0, limit), f => ({
+    icon: fileIcon(f.format), t: f.name, s: fmtBytes(f.size), type: "File", action: () => { state.files.folder = f.parent; switchApp("files"); closeSpotlight(); }
+  }));
+  if (results.events.length) h += spotGroup("Events", results.events.slice(0, limit), e => ({
+    icon: ICON.calendar, t: e.title, s: e.date + " · " + e.location, type: "Event", action: () => { switchApp("calendar"); closeSpotlight(); }
+  }));
+  root.innerHTML = h;
+  // attach handlers
+  root.querySelectorAll(".spot-r").forEach((el, i) => {
+    el.addEventListener("click", () => { spotActions[i](); closeSpotlight(); });
+  });
+  // first selected
+  const first = root.querySelector(".spot-r"); if (first) first.classList.add("sel");
+}
+const spotActions = [];
+function spotGroup(label, list, fn) {
+  if (!list.length) return "";
+  let h = `<div class="spot-group"><div class="h">${label}</div>`;
+  list.forEach(item => {
+    const o = fn(item);
+    spotActions.push(o.action);
+    h += `<div class="spot-r"><div class="ico">${o.icon}</div><div class="meta"><div class="t">${escape(o.t)}</div><div class="s">${escape(o.s)}</div></div><div class="type">${o.type}</div></div>`;
+  });
+  h += "</div>";
+  return h;
+}
+
+/* ================================================================
+ *  NOTIFICATIONS
+ * ================================================================ */
+function buildNotifications() {
+  const items = [
+    { icon: ICON.mail, html: `New message from <b>Charles</b>: Re: notation for the analytical engine`, when: "1h ago" },
+    { icon: ICON.calendar, html: `<b>Coffee with Charles</b> in 30 minutes`, when: "30m ago" },
+    { icon: ICON.tasks, html: `<b>Sketch the Memex inbox UI</b> is due tomorrow`, when: "3h ago" },
+    { icon: ICON.notes, html: `<b>Alan</b> commented on "On loops, in two senses"`, when: "5h ago" },
+    { icon: ICON.files, html: `<b>Charles</b> shared <b>memex-sketch.png</b> with you`, when: "yesterday" }
+  ];
+  $("#notif-list").innerHTML = items.map(it => `
+    <div class="notif-item">
+      <div class="ico">${it.icon}</div>
+      <div><div class="body">${it.html}</div><div class="when">${it.when}</div></div>
+    </div>
+  `).join("");
+}
+
+/* ================================================================
+ *  PHOTO LIGHTBOX
+ * ================================================================ */
+function openLightbox(id) {
+  const p = PHOTOS.find(x => x.id === id);
+  $("#lb-content").innerHTML = `
+    <div class="lb-img" style="background:linear-gradient(135deg, ${p.g.join(", ")})"></div>
+    <div class="lb-info">
+      <div>
+        <h2>${escape(p.title)}</h2>
+        <div class="meta">${p.date}</div>
+      </div>
+      <div>
+        <h3 style="font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px">Photographer</h3>
+        <div class="linked-row" data-lb-link-person="${p.by}">
+          <div class="ico">${ICON.contacts}</div>
+          <div>${escape(person(p.by).name)}</div>
+        </div>
+      </div>
+    </div>
+  `;
+  $("#lightbox").classList.add("on");
+  $$("#lightbox [data-lb-link-person]").forEach(el => el.addEventListener("click", () => {
+    state.contacts.selected = el.dataset.lbLinkPerson;
+    closeLightbox();
+    switchApp("contacts");
+  }));
+}
+function closeLightbox() { $("#lightbox").classList.remove("on"); }
+
+/* ================================================================
+ *  THEME + KEYBOARD + INIT
+ * ================================================================ */
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute("data-theme");
+  const next = cur === "light" ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem("hub-theme", next);
+  updateThemeIcon(next);
+  if (state.app === "settings") RENDERERS.settings();
+}
+function updateThemeIcon(t) {
+  $("#theme-icon").innerHTML = t === "light"
+    ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
+    : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+}
+
+function showToast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("on");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove("on"), 2000);
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "INPUT") {
+    if (e.key === "Escape") { closeSpotlight(); }
+    return;
+  }
+  const inSpot = $("#spot-bg").classList.contains("on");
+  if (e.key === "Escape") {
+    closeSpotlight();
+    closeLightbox();
+    $("#notif-pop").classList.remove("on");
+    return;
+  }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+    e.preventDefault();
+    if (inSpot) closeSpotlight(); else openSpotlight();
+    return;
+  }
+  if (inSpot) {
+    if (e.key === "Enter") {
+      const sel = $("#spot-results .sel") || $("#spot-results .spot-r");
+      if (sel) sel.click();
+      e.preventDefault();
+    } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      const all = [...$$("#spot-results .spot-r")];
+      const idx = all.findIndex(el => el.classList.contains("sel"));
+      const next = e.key === "ArrowDown" ? Math.min(all.length - 1, idx + 1) : Math.max(0, idx - 1);
+      all.forEach(el => el.classList.remove("sel"));
+      if (all[next]) { all[next].classList.add("sel"); all[next].scrollIntoView({ block: "nearest" }); }
+      e.preventDefault();
+    }
+    return;
+  }
+  if (e.key >= "1" && e.key <= "9") {
+    const a = APPS[+e.key - 1]; if (a) switchApp(a.id);
+  } else if (e.key === "0") {
+    switchApp("activity");
+  } else if (e.key.toLowerCase() === "t") {
+    toggleTheme();
+  } else if (e.key === "/" || e.key === "?") {
+    openSpotlight(); e.preventDefault();
+  }
+});
+
+$("#search-trigger").addEventListener("click", openSpotlight);
+$("#spot-bg").addEventListener("click", closeSpotlight);
+$("#spot-input").addEventListener("input", (e) => spotSearch(e.target.value));
+$("#theme-btn").addEventListener("click", toggleTheme);
+$("#lightbox").addEventListener("click", (e) => { if (e.target.id === "lightbox") closeLightbox(); });
+$("#lb-close").addEventListener("click", closeLightbox);
+$("#notif-btn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  $("#notif-pop").classList.toggle("on");
+});
+document.addEventListener("click", (e) => {
+  if (!$("#notif-pop").contains(e.target) && e.target.id !== "notif-btn") {
+    $("#notif-pop").classList.remove("on");
+  }
+});
+
+/* ----- INIT ----- */
+const savedTheme = localStorage.getItem("hub-theme");
+if (savedTheme) {
+  document.documentElement.setAttribute("data-theme", savedTheme);
+  updateThemeIcon(savedTheme);
+}
+buildRail();
+buildNotifications();
+const hash = location.hash.replace("#", "");
+switchApp(APPS.find(a => a.id === hash) ? hash : "home");
+
+// First-visit nudge
+setTimeout(() => {
+  if (!localStorage.getItem("hub-seen")) {
+    showToast("Tip — press ⌘K to search across everything");
+    localStorage.setItem("hub-seen", "1");
+  }
+}, 900);
+</script>
+</body>
+</html>
