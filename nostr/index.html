@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -131,8 +131,8 @@ body::before {
 }
 
 .compose-cta {
-  margin: 10px 4px 0;
-  padding: 12px;
+  margin: 14px 4px 4px;
+  padding: 11px 18px;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: white; border: none;
   border-radius: 100px;
@@ -143,6 +143,7 @@ body::before {
   transition: transform .12s var(--easing);
 }
 .compose-cta:hover { transform: translateY(-1px); }
+.compose-cta svg { width: 16px; height: 16px; flex-shrink: 0; }
 
 .nav-foot {
   margin-top: auto;
@@ -710,19 +711,13 @@ import { SimplePool, nip19 } from "https://esm.sh/nostr-tools@2.7.2";
 const DEFAULT_RELAYS = [
   "wss://relay.damus.io",
   "wss://nos.lol",
-  "wss://relay.nostr.band",
+  "wss://relay.primal.net",
   "wss://nostr.wine"
 ];
 
-// A small curated set of well-known nostr accounts for the default home feed
-// and "suggested follows". These npubs are public.
+// Default seed follows for the home feed.
 const SEED_FOLLOWS = [
-  "npub180cvv07tjdrrgpa0j7j7tmnyl2yr6yr7l8j4s3evf6u64th6gkwsyjh6w6", // fiatjaf (creator of nostr)
   "npub1xtscya34g58tk0z605fvr788k263gsu6cy9x0mhnm87echrgufzsevkk5s", // jb55
-  "npub1l2vyh47mk2p0qlsku7hg0vn29faehy9hy34ygaclpn66ukqp3afqutajft", // pablof7z
-  "npub1qny3tkh0acurzla8x3zy4nhrjz5zd8l9sy9jys09umwng00manysew95gx", // odell
-  "npub1az9xj85cmxv8e9j9y80lvqp97crsqdu2fpu3srwthd99qfu9qsgstam8y8", // nvk
-  "npub1sg6plzptd64u62a878hep2kev88swjh3tw00gjsfl8f237lmu63qftjdx7", // jack
 ];
 
 /* ============================================================
