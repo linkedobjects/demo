@@ -711,13 +711,15 @@ import { SimplePool, nip19 } from "https://esm.sh/nostr-tools@2.7.2";
 const DEFAULT_RELAYS = [
   "wss://relay.damus.io",
   "wss://nos.lol",
-  "wss://relay.primal.net",
-  "wss://nostr.wine"
+  "wss://relay.snort.social",
+  "wss://nostr-pub.wellorder.net"
 ];
 
-// Default seed follows for the home feed.
+// Suggested follows shown in the right panel; users can follow anyone
+// from a profile page. Home is a firehose by default, not a follow-filtered feed.
 const SEED_FOLLOWS = [
-  "npub1xtscya34g58tk0z605fvr788k263gsu6cy9x0mhnm87echrgufzsevkk5s", // jb55
+  "npub1xtscya34g58tk0z605fvr788k263gsu6cy9x0mhnm87echrgufzsevkk5s", // jb55 (Damus)
+  "npub1gcxzte5zlkncx26j68ez60fzkvtkm9e0vrwdcvsjakxf9mu9qewqlfnj5z", // vitorpamplona (Amethyst)
 ];
 
 /* ============================================================
@@ -727,7 +729,7 @@ const state = {
   view: "home",          // home | global | notifications | profile | thread | settings
   viewParam: null,       // for profile (hex pubkey) or thread (event id)
   relays: JSON.parse(localStorage.getItem("ln-relays") || "null") || DEFAULT_RELAYS.slice(),
-  follows: JSON.parse(localStorage.getItem("ln-follows") || "null") || SEED_FOLLOWS.map(npubToHex),
+  follows: (JSON.parse(localStorage.getItem("ln-follows") || "null") || SEED_FOLLOWS.map(npubToHex)).filter(Boolean),
   me: null,              // hex pubkey when logged in
   isLoggedIn: false,
   notes: new Map(),      // id → event
@@ -937,10 +939,9 @@ function renderHomeView() {
   $("#feed-content").innerHTML = headHTML;
   if (state.isLoggedIn) wireComposer();
 
-  // Fetch follows: text notes from people in `follows` list
-  // Also fetch profiles for them
-  fetchProfiles(state.follows);
-  loadFeed({ kinds: [1], authors: state.follows, limit: 60 });
+  // Home is a firehose — recent kind:1 from anyone, with a light spam filter.
+  // Profiles are fetched lazily as events stream in.
+  loadFeed({ kinds: [1], limit: 100 }, { spamFilter: true });
 }
 
 function renderGlobalView() {
@@ -986,14 +987,19 @@ function loadFeed(filter, opts = {}) {
   const finalize = () => {
     const events = [...collected.values()].sort((a, b) => b.created_at - a.created_at);
     if (!events.length) {
-      list.innerHTML = `<div class="empty">No notes yet.<br/>Relays may be slow — try Global or check Settings.</div>`;
+      list.innerHTML = `<div class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <div>Nothing came through yet.</div>
+        <div style="margin-top:8px;font-size:13px">Relays may be slow — try again or check Settings.</div>
+      </div>`;
       return;
     }
     list.innerHTML = events.map(e => noteHTML(e, opts)).join("");
     wireFeedHandlers(list);
     // Fetch missing profiles for events
     fetchProfiles([...new Set(events.map(e => e.pubkey))]);
-    $("#feed-count").textContent = events.length + " notes";
+    const fc = $("#feed-count");
+    if (fc) fc.textContent = events.length + " notes";
   };
 
   let renderTimeout;
@@ -1001,7 +1007,6 @@ function loadFeed(filter, opts = {}) {
     onevent(ev) {
       if (opts.spamFilter) {
         if (!ev.content || ev.content.length < 8) return;
-        // require a profile (this filter actually excludes accounts we haven't seen kind 0 for, but that's fine after a few seconds)
       }
       if (collected.has(ev.id)) return;
       collected.set(ev.id, ev);
@@ -1017,8 +1022,11 @@ function loadFeed(filter, opts = {}) {
     }
   });
 
-  // safety: render after 4s even if no eose
-  setTimeout(() => { if (count > 0) finalize(); else if (list.firstChild?.classList?.contains("spinner")) finalize(); }, 4000);
+  // safety: render after 6s even if no eose / no events
+  setTimeout(() => {
+    if (count > 0) finalize();
+    else if (list.firstChild?.classList?.contains("spinner")) finalize();
+  }, 6000);
 }
 
 function renderComposer() {
