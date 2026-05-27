@@ -12,6 +12,7 @@ Live: <https://linkedobjects.org/demo/>
 | `/tasks/` | `wf:Tracker` | A to-do list (Tasks pane) |
 | `/notes/` | `TextDocument` (`text/markdown`) | Rendered markdown |
 | `/playlist/` | `Playlist` (`audio/mpegurl`) | Audio queue (Playlist pane) |
+| `/audio/` | `AudioDocument` (`audio/mpeg`) | Single-track player (Audio pane) |
 | `/folder/` | `ldp:BasicContainer` | Directory listing |
 
 ## How it works
